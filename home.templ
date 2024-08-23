@@ -1,0 +1,98 @@
+package main
+
+var Mauve = "#cba6f7"
+var Text = "#cdd6f4"
+var Base = "#1e1e2e"
+
+var Surface0 = "#313244"
+var Surface1 = "#45475a"
+var Surface2 = "#585b70"
+
+var Overlay0 = "#6c7086"
+var Overlay1 = "#7f849c"
+var Overlay2 = "#9399b2"
+
+css pBody() {
+	background-color: { Surface0 };
+	max-width: 800px;
+	margin: auto;
+
+	padding-left: 0.5cm;
+	padding-right: 0.5cm;
+	padding-bottom: 0.5cm;
+	padding-top: 1px;
+
+	margin-top: 0.25cm;
+}
+
+css pCont() {
+	max-width: 800px;
+	margin: auto;
+}
+
+css pHead() {
+	background-color: { Surface2 };
+	padding-top: 14px;
+	padding-bottom: 14px;
+}
+
+css bodyReset() {
+	background-color: { Base };
+	color: { Text };
+	margin: 0;
+	padding: 0;
+}
+
+css btnHead() {
+	background-color: { Surface0 };
+	color: { Mauve };
+}
+
+templ Head() {
+	<div class={ pHead }>
+	<div class={ pCont }>
+		<a href="/" class={ "btn", btnHead }>Home</a>
+	</div>
+	</div>
+}
+
+templ Page() {
+	<!doctype html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Alan Daniels</title>
+		<style type="text/css">
+		hr {
+			max-width: 10cm;
+		}
+		.btn {
+			padding: 14px;
+			text-decoration: none;
+			transition-duration: 0.4s;
+		}
+		.btn:hover {
+			background-color: #45475a;
+		}
+		</style>
+	</head>
+	<body class={bodyReset} >
+		@Head()
+		<div class={ pBody }>
+		{ children... }
+		</div>
+	</body>
+	</html>
+}
+
+templ Home() {
+	@Page() {
+		<h1>Hello! I'm Alan.</h1>
+		<p>This site is a personal project for me to put myself online, 
+		<br>with the level of control I'm comfortable with.</p>
+		<hr>
+		<p>This site will be:
+		<br>A directory & platform for projects.
+		<br>A blog, both for documenting my projects and for general insights and life updates.</p>
+	}
+}
