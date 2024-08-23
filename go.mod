@@ -1,4 +1,4 @@
-module example.com/gomod2nix-template
+module github.com/Alan-Daniels/web
 
 go 1.21
 
