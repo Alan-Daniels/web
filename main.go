@@ -3,7 +3,10 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
@@ -13,6 +16,12 @@ import (
 )
 
 func main() {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(homedir)
+
 	app := echo.New()
 	app.GET("/", HomeHandler)
 
@@ -20,20 +29,20 @@ func main() {
 	flag.Parse()
 
 	if *flSSL {
-		customHTTPServer(app)
+		customHTTPServer(app, homedir)
 	} else {
 		app.Logger.Fatal(app.Start(":8080"))
 	}
 }
 
-func customHTTPServer(e *echo.Echo) {
+func customHTTPServer(e *echo.Echo, homedir string) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 
 	autoTLSManager := autocert.Manager{
 		Prompt: autocert.AcceptTOS,
 		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
-		Cache:      autocert.DirCache("./.cache"),
+		Cache:      autocert.DirCache(homedir+"/.cache"),
 		HostPolicy: autocert.HostWhitelist("alandaniels.homes"),
 	}
 	s := http.Server{
