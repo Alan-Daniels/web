@@ -3,10 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"flag"
-	"fmt"
-	"log"
 	"net/http"
-	"os"
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
@@ -18,21 +15,16 @@ import (
 )
 
 func main() {
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(homedir)
-
-	app := echo.New()
-	app.Static("/assets", "assets")
-	app.GET("/", HomeHandler)
-
 	flSSL := flag.Bool("ssl", false, "whether to start with ssl")
+	webroot := flag.String("root", "./", "where the files be ;)")
 	flag.Parse()
 
+	app := echo.New()
+	app.Static("/assets", (*webroot)+"assets")
+	app.GET("/", HomeHandler)
+
 	if *flSSL {
-		customHTTPServer(app, homedir)
+		customHTTPServer(app, *webroot)
 	} else {
 		app.Logger.Fatal(app.Start(":8080"))
 	}
