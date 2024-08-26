@@ -16,11 +16,11 @@ import (
 
 func main() {
 	flSSL := flag.Bool("ssl", false, "whether to start with ssl")
-	webroot := flag.String("root", "./", "where the files be ;)")
+	webroot := flag.String("root", ".", "where the files be ;)")
 	flag.Parse()
 
 	app := echo.New()
-	app.Static("/assets", (*webroot)+"assets")
+	app.Static("/assets", (*webroot)+"/assets")
 	app.GET("/", HomeHandler)
 
 	if *flSSL {
@@ -37,7 +37,7 @@ func customHTTPServer(e *echo.Echo, homedir string) {
 	autoTLSManager := autocert.Manager{
 		Prompt: autocert.AcceptTOS,
 		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
-		Cache:      autocert.DirCache(homedir+"/.cache"),
+		Cache:      autocert.DirCache(homedir + "/.cache"),
 		HostPolicy: autocert.HostWhitelist("alandaniels.homes"),
 	}
 	s := http.Server{
