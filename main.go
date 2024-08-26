@@ -33,7 +33,7 @@ func customHTTPServer(e *echo.Echo) {
 	autoTLSManager := autocert.Manager{
 		Prompt: autocert.AcceptTOS,
 		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
-		Cache:      autocert.DirCache("/home/debian/.cache"),
+		Cache:      autocert.DirCache("./.cache"),
 		HostPolicy: autocert.HostWhitelist("alandaniels.homes"),
 	}
 	s := http.Server{
