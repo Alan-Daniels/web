@@ -23,6 +23,7 @@ tmp_dir = "tmp"
   post_cmd = []
   pre_cmd = [
     "templ generate"
+    "npx tailwindcss -i ./assets/input.css -o ./assets/styles.css --minify"
   ]
   rerun = false
   rerun_delay = 500

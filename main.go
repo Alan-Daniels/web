@@ -13,6 +13,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
+
+	"github.com/Alan-Daniels/web/internal"
 )
 
 func main() {
@@ -23,6 +25,7 @@ func main() {
 	fmt.Println(homedir)
 
 	app := echo.New()
+	app.Static("/assets", "assets")
 	app.GET("/", HomeHandler)
 
 	flSSL := flag.Bool("ssl", false, "whether to start with ssl")
@@ -74,5 +77,5 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 }
 
 func HomeHandler(c echo.Context) error {
-	return Render(c, http.StatusOK, Home())
+	return Render(c, http.StatusOK, internal.Home())
 }

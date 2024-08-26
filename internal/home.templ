@@ -1,0 +1,92 @@
+package internal
+
+var Mauve = "#cba6f7"
+var Text = "#cdd6f4"
+var Base = "#1e1e2e"
+
+var Surface0 = "#313244"
+var Surface1 = "#45475a"
+var Surface2 = "#585b70"
+
+var Overlay0 = "#6c7086"
+var Overlay1 = "#7f849c"
+var Overlay2 = "#9399b2"
+
+css pBody() {
+	max-width: 800px;
+	margin: auto;
+	padding-left: 0.5cm;
+	padding-right: 0.5cm;
+	padding-bottom: 0.5cm;
+	padding-top: 1px;
+	box-shadow: { "0px 0px 5px -5px" + Surface0 };
+	-webkit-box-shadow: { "0px 0px 5px -5px" + Surface0 };
+	-moz-box-shadow: { "0px 0px 5px -5px" + Surface0 };
+}
+
+css pCont() {
+	max-width: 800px;
+	margin: auto;
+}
+
+css pHead() {
+	background-color: { Surface0 };
+	padding-top: 14px;
+	padding-bottom: 14px;
+}
+
+css bodyReset() {
+	background-color: { Base };
+	color: { Text };
+	margin: 0;
+	padding: 0;
+}
+
+css btnHead() {
+	color: { Text };
+}
+
+templ Head() {
+	<div class={ pHead }>
+		<div class={ pCont }>
+			<a href="/" class={ "btn", btnHead }>Home</a>
+		</div>
+	</div>
+}
+
+templ Page() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<title>Alan Daniels</title>
+			<link rel="stylesheet" href="/assets/styles.css"/>
+			<script src="https://unpkg.com/htmx.org@1.9.11"></script>
+		</head>
+		<body class={ bodyReset }>
+			@Head()
+			<div class={ pBody }>
+				{ children... }
+			</div>
+		</body>
+	</html>
+}
+
+templ Home() {
+	@Page() {
+		<h1>Hello! I'm Alan.</h1>
+		<p>
+			This site is a personal project for me to put myself online, 
+			<br/>
+			with the level of control I'm comfortable with.
+		</p>
+		<hr/>
+		<p>
+			This site will be:
+			<br/>
+			A directory & platform for projects.
+			<br/>
+			A blog, both for documenting my projects and for general insights and life updates.
+		</p>
+	}
+}
