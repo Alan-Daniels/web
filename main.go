@@ -22,6 +22,7 @@ func main() {
 	app := echo.New()
 	app.Static("/assets", (*webroot)+"/assets")
 	app.GET("/", HomeHandler)
+	app.File("/favicon.ico", (*webroot)+"/assets/favicon.ico")
 	app.GET("/about", AboutHandler)
 
 	projects := app.Group("/projects")
