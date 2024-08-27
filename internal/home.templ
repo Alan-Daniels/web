@@ -12,48 +12,6 @@ var Overlay0 = "#6c7086"
 var Overlay1 = "#7f849c"
 var Overlay2 = "#9399b2"
 
-css pBody() {
-	max-width: 800px;
-	margin: auto;
-	padding-left: 0.5cm;
-	padding-right: 0.5cm;
-	padding-bottom: 0.5cm;
-	padding-top: 1px;
-	box-shadow: { "0px 0px 5px -5px" + Surface0 };
-	-webkit-box-shadow: { "0px 0px 5px -5px" + Surface0 };
-	-moz-box-shadow: { "0px 0px 5px -5px" + Surface0 };
-}
-
-css pCont() {
-	max-width: 800px;
-	margin: auto;
-}
-
-css pHead() {
-	background-color: { Surface0 };
-	padding-top: 14px;
-	padding-bottom: 14px;
-}
-
-css bodyReset() {
-	background-color: { Base };
-	color: { Text };
-	margin: 0;
-	padding: 0;
-}
-
-css btnHead() {
-	color: { Text };
-}
-
-templ Head() {
-	<div class={ pHead }>
-		<div class={ pCont }>
-			<a href="/" class={ "btn", btnHead }>Home</a>
-		</div>
-	</div>
-}
-
 templ Page() {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -63,30 +21,78 @@ templ Page() {
 			<link rel="stylesheet" href="/assets/styles.css"/>
 			<script src="https://unpkg.com/htmx.org@1.9.11"></script>
 		</head>
-		<body class={ bodyReset }>
+		<body class={ "bg-base", "container", "mx-auto", "pt-6" }>
 			@Head()
-			<div class={ pBody }>
+			<div class="text-text">
 				{ children... }
 			</div>
 		</body>
 	</html>
 }
 
+css headFlavour() {
+	background: { templ.SafeCSSProperty("repeating-linear-gradient(95deg, "+Mauve+", "+Mauve+" 2px, transparent 0, transparent 9px)") };
+}
+
+templ Head() {
+	<header class="pb-3">
+		<div class={ "flex", headFlavour() }>
+			<a href="/" class={ "bg-muave p-2 text-base hover:underline" }>Alan Daniels</a>
+			<nav class="ml-auto mr-8 flex h-fit w-fit self-center text-text">
+				<a href="/about" class="bg-base p-1 m-1 rounded hover:text-muave">About</a>
+				<a href="/notes" class="bg-base p-1 m-1 rounded hover:text-muave">Notes</a>
+				<a href="/projects" class="bg-base p-1 m-1 rounded hover:text-muave">Projects</a>
+			</nav>
+		</div>
+	</header>
+}
+
 templ Home() {
 	@Page() {
-		<h1>Hello! I'm Alan.</h1>
-		<p>
-			This site is a personal project for me to put myself online, 
-			<br/>
-			with the level of control I'm comfortable with.
-		</p>
-		<hr/>
-		<p>
-			This site will be:
-			<br/>
-			A directory & platform for projects.
-			<br/>
-			A blog, both for documenting my projects and for general insights and life updates.
-		</p>
+		<div class="flex relative items-center overflow-hidden">
+			<div class="container mx-auto px-6 flex relative py-16">
+				<div class="sm:w-2/3 lg:w-2/5 flex flex-col relative justify-center">
+					<!-- <span class="w-20 h-2 bg-muave mb-12"></span> -->
+					<h1 class="font-sans text-6xl sm:text-8xl font-black flex flex-col leading-none text-white">
+						Hi,
+						<span class="text-5xl sm:text-7xl">
+							I'm Alan
+						</span>
+					</h1>
+					<p class="text-sm">
+						Software Engineer - Permaculture Wannabe
+					</p>
+					<!-- <div class="flex mt-8">
+						<a href="#" class="uppercase py-2 px-4 rounded-lg bg-pink-500 border-2 border-transparent text-md mr-4">
+							Get started
+						</a>
+						<a href="#" class="uppercase py-2 px-4 rounded-lg bg-transparent border-2 text-md">
+							Read more
+						</a>
+					</div> -->
+				</div>
+				<div class="hidden sm:block sm:w-1/3 lg:w-3/5 relative">
+					<img src="/assets/profile.jpg" class="max-w-xs md:max-w-sm m-auto rounded"/>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ About() {
+	@Page() {
+		<p>todo</p>
+	}
+}
+
+templ Notes() {
+	@Page() {
+		<p>todo</p>
+	}
+}
+
+templ Projects() {
+	@Page() {
+		<p>todo</p>
 	}
 }

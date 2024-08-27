@@ -19,9 +19,8 @@ buildGoApplication {
   src = ./.;
   modules = ./gomod2nix.toml;
   postInstall = let
-    assets = ./assets;
   in ''
     mkdir $out/assets
-    cp -r ${assets}/* $out/assets
+    cp -r ${./assets}/* $out/assets
   '';
 }

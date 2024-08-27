@@ -22,6 +22,13 @@ func main() {
 	app := echo.New()
 	app.Static("/assets", (*webroot)+"/assets")
 	app.GET("/", HomeHandler)
+	app.GET("/about", AboutHandler)
+
+	projects := app.Group("/projects")
+	projects.GET("", ProjectsHandler)
+
+	notes := app.Group("/notes")
+	notes.GET("", NotesHandler)
 
 	if *flSSL {
 		customHTTPServer(app, *webroot)
@@ -30,14 +37,14 @@ func main() {
 	}
 }
 
-func customHTTPServer(e *echo.Echo, homedir string) {
+func customHTTPServer(e *echo.Echo, webroot string) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 
 	autoTLSManager := autocert.Manager{
 		Prompt: autocert.AcceptTOS,
 		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
-		Cache:      autocert.DirCache(homedir + "/.cache"),
+		Cache:      autocert.DirCache(webroot + "/.cache"),
 		HostPolicy: autocert.HostWhitelist("alandaniels.homes"),
 	}
 	s := http.Server{
@@ -70,4 +77,16 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 
 func HomeHandler(c echo.Context) error {
 	return Render(c, http.StatusOK, internal.Home())
+}
+
+func AboutHandler(c echo.Context) error {
+	return Render(c, http.StatusOK, internal.About())
+}
+
+func ProjectsHandler(c echo.Context) error {
+	return Render(c, http.StatusOK, internal.Projects())
+}
+
+func NotesHandler(c echo.Context) error {
+	return Render(c, http.StatusOK, internal.Notes())
 }
