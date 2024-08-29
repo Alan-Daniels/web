@@ -23,7 +23,7 @@ templ Page() {
 			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + Commit }/>
 			<!-- <script src="https://unpkg.com/htmx.org@1.9.11"></script> -->
 		</head>
-		<body class="bg-base">
+		<body class="bg-dark">
 			<div class={ "mx-auto pt-6 px-3 md:px-0 md:max-w-[50rem] xl:max-w-[60rem]" }>
 				@Head()
 				<div class={ "text-text" }>
@@ -39,12 +39,12 @@ css headFlavour() {
 }
 
 templ Head() {
-	<header class="pb-6">
+	<header class="pb-6 text-5xl md:text-3xl lg:text-base">
 		<div class={ "flex rounded overflow-hidden", headFlavour() }>
-			<a href="/" class={ "bg-muave p-2 text-base hover:underline" }>Alan Daniels</a>
+			<a href="/" class={ "bg-muave p-2 text-dark hover:underline" }>Alan Daniels</a>
 			<nav class="ml-auto mr-8 flex h-fit w-fit self-center text-text">
-				<a href="/about" class="bg-base p-1 m-1 rounded hover:text-muave">About</a>
-				<a href="/now" class="bg-base p-1 m-1 rounded hover:text-muave">Now</a>
+				<a href="/about" class="bg-dark p-1 m-1 rounded hover:text-muave">About</a>
+				<a href="/now" class="bg-dark p-1 m-1 rounded hover:text-muave">Now</a>
 			</nav>
 		</div>
 	</header>

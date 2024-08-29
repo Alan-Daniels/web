@@ -10,7 +10,7 @@ module.exports = {
             current: 'currentColor',
             'white': '#ffffff',
             'muave': '#cba6f7',
-            'base': '#1e1e2e',
+            'dark': '#1e1e2e',
             'text': "#cdd6f4",
             'surface': {
                 100: "#313244",

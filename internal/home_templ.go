@@ -42,7 +42,7 @@ func Home() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 = []any{"uppercase py-1 px-3 rounded-lg bg-muave border-2 border-transparent text-base mr-4", "hover:underline"}
+			var templ_7745c5c3_Var3 = []any{"uppercase py-1 px-3 rounded-lg bg-muave border-2 border-transparent text-dark mr-4", "hover:underline"}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

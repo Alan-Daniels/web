@@ -53,7 +53,7 @@ func Page() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><!-- <script src=\"https://unpkg.com/htmx.org@1.9.11\"></script> --></head><body class=\"bg-base\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><!-- <script src=\"https://unpkg.com/htmx.org@1.9.11\"></script> --></head><body class=\"bg-dark\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -145,7 +145,7 @@ func Head() templ.Component {
 			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"pb-6\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"pb-6 text-5xl md:text-3xl lg:text-base\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -171,7 +171,7 @@ func Head() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var10 = []any{"bg-muave p-2 text-base hover:underline"}
+		var templ_7745c5c3_Var10 = []any{"bg-muave p-2 text-dark hover:underline"}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var10...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -189,7 +189,7 @@ func Head() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Alan Daniels</a><nav class=\"ml-auto mr-8 flex h-fit w-fit self-center text-text\"><a href=\"/about\" class=\"bg-base p-1 m-1 rounded hover:text-muave\">About</a> <a href=\"/now\" class=\"bg-base p-1 m-1 rounded hover:text-muave\">Now</a></nav></div></header>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Alan Daniels</a><nav class=\"ml-auto mr-8 flex h-fit w-fit self-center text-text\"><a href=\"/about\" class=\"bg-dark p-1 m-1 rounded hover:text-muave\">About</a> <a href=\"/now\" class=\"bg-dark p-1 m-1 rounded hover:text-muave\">Now</a></nav></div></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
