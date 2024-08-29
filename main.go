@@ -23,13 +23,14 @@ func main() {
 	app.Static("/assets", (*webroot)+"/assets")
 	app.GET("/", HomeHandler)
 	app.File("/favicon.ico", (*webroot)+"/assets/favicon.ico")
+	app.GET("/now", NowHandler)
 	app.GET("/about", AboutHandler)
 
-	projects := app.Group("/projects")
-	projects.GET("", ProjectsHandler)
+	//projects := app.Group("/projects")
+	//projects.GET("", ProjectsHandler)
 
-	notes := app.Group("/notes")
-	notes.GET("", NotesHandler)
+	//notes := app.Group("/notes")
+	//notes.GET("", NotesHandler)
 
 	if *flSSL {
 		customHTTPServer(app, *webroot)
@@ -84,10 +85,6 @@ func AboutHandler(c echo.Context) error {
 	return Render(c, http.StatusOK, internal.About())
 }
 
-func ProjectsHandler(c echo.Context) error {
-	return Render(c, http.StatusOK, internal.Projects())
-}
-
-func NotesHandler(c echo.Context) error {
-	return Render(c, http.StatusOK, internal.Notes())
+func NowHandler(c echo.Context) error {
+	return Render(c, http.StatusOK, internal.Now())
 }

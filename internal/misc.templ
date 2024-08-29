@@ -1,0 +1,74 @@
+package internal
+
+import "strings"
+
+var Mauve = "#cba6f7"
+var Text = "#cdd6f4"
+var Base = "#1e1e2e"
+
+var Surface0 = "#313244"
+var Surface1 = "#45475a"
+var Surface2 = "#585b70"
+
+var Overlay0 = "#6c7086"
+var Overlay1 = "#7f849c"
+var Overlay2 = "#9399b2"
+
+templ Page() {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<title>Alan Daniels</title>
+			<link rel="stylesheet" href="/assets/styles.css"/>
+			<!-- <script src="https://unpkg.com/htmx.org@1.9.11"></script> -->
+		</head>
+		<body class="bg-base">
+			<div class={ "mx-auto pt-6 px-3 md:px-0 md:max-w-[50rem] xl:max-w-[60rem]" }>
+				@Head()
+				<div class={ "text-text" }>
+					{ children... }
+				</div>
+			</div>
+		</body>
+	</html>
+}
+
+css headFlavour() {
+	background: { templ.SafeCSSProperty("repeating-linear-gradient(95deg, "+Mauve+", "+Mauve+" 2px, transparent 0, transparent 9px)") };
+}
+
+templ Head() {
+	<header class="pb-6">
+		<div class={ "flex rounded overflow-hidden", headFlavour() }>
+			<a href="/" class={ "bg-muave p-2 text-base hover:underline" }>Alan Daniels</a>
+			<nav class="ml-auto mr-8 flex h-fit w-fit self-center text-text">
+				<a href="/about" class="bg-base p-1 m-1 rounded hover:text-muave">About</a>
+				<a href="/now" class="bg-base p-1 m-1 rounded hover:text-muave">Now</a>
+			</nav>
+		</div>
+	</header>
+}
+
+templ Tooltip(toolText string) {
+	<div class="group flex relative">
+		<span class="group-hover:opacity-100 transition-opacity bg-surface-100 px-1 text-sm text-text rounded-md absolute left-1/2 -translate-x-1/2 translate-y-full opacity-0 m-4 mx-auto z-10">{ toolText }</span>
+		{ children... }
+	</div>
+}
+
+templ Img(src, alttext, class string) {
+	@Tooltip(alttext) {
+		<img src={ src } alt={ alttext } class={ "md:max-w-[40rem] xl:max-w-[50rem] 2xl:max-w-[60rem] rounded", class }/>
+	}
+}
+
+templ Section(title string) {
+	<h2 class="text-2xl pt-5" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h2>
+	{ children... }
+}
+
+templ SubSection(title string) {
+	<h3 class="text-xl pt-5" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h3>
+	{ children... }
+}
