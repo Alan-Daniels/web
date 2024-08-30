@@ -186,7 +186,11 @@ func Now() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1 class=\"text-4xl\">What I'm doing now</h1><p class=\"text-sm font-thin\">(This is a now page, and if you have your own site, <a href=\"https://nownownow.com/about\" class=\"text-muave hover:underline\" target=\"_blank\">you should make one</a>, too.)</p>")
+			templ_7745c5c3_Err = Title("What I'm doing now").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <p class=\"text-sm font-thin\">(This is a now page, and if you have your own site, <a href=\"https://nownownow.com/about\" class=\"text-muave hover:underline\" target=\"_blank\">you should make one</a>, too.)</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -312,7 +316,11 @@ func About() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1 class=\"text-4xl pb-4\">About me</h1><p>This page is currently still being created.</p><p>In the meantime, you can check out <a href=\"/now\" class=\"text-muave hover:underline\">what I'm doing now</a>.</p>")
+			templ_7745c5c3_Err = Title("About me").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" <p class=\"pt-3\">This page is currently still being created.</p><p>In the meantime, you can check out <a href=\"/now\" class=\"text-muave hover:underline\">what I'm doing now</a>.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

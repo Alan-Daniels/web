@@ -41,7 +41,7 @@ templ Spoiler() {
 
 templ Now() {
 	@Page() {
-		<h1 class="text-4xl">What I'm doing now</h1>
+		@Title("What I'm doing now")
 		<p class="text-sm font-thin">(This is a now page, and if you have your own site, <a href="https://nownownow.com/about" class="text-muave hover:underline" target="_blank">you should make one</a>, too.)</p>
 		@Section("This Season") {
 			<p>
@@ -69,9 +69,9 @@ templ Now() {
 
 templ About() {
 	@Page(){
-		<h1 class="text-4xl pb-4">About me</h1>
-		
-		<p>This page is currently still being created.</p>
+		@Title("About me")
+
+		<p class="pt-3">This page is currently still being created.</p>
 		<p>In the meantime, you can check out <a href="/now" class="text-muave hover:underline">what I'm doing now</a>.</p>
 	}
 }

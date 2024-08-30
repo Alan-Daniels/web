@@ -63,12 +63,16 @@ templ Img(src, alttext, class string) {
 	}
 }
 
+templ Title(title string) {
+	<h1 class="text-4xl pt-5 font-semibold">{ title }</h1>
+}
+
 templ Section(title string) {
-	<h2 class="text-2xl pt-5" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h2>
+	<h2 class="text-2xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h2>
 	{ children... }
 }
 
 templ SubSection(title string) {
-	<h3 class="text-xl pt-5" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h3>
+	<h3 class="text-xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h3>
 	{ children... }
 }
