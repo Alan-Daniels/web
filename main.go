@@ -44,7 +44,11 @@ func main() {
 	// site doesn't have interactability yet so these aren't critical
 
 	// TODO: add logger for better error insight
-	app.Use(echoprometheus.NewMiddleware("mysite")) // adds middleware to gather metrics
+	// TODO: figure out some analytics
+	app.Use(echoprometheus.NewMiddlewareWithConfig(echoprometheus.MiddlewareConfig{
+		Subsystem: "mysite",
+		DoNotUseRequestPathFor404: true,
+	}))
 	go func() {
 		metrics := echo.New()                                // this Echo will run on separate port 8081
 		metrics.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
