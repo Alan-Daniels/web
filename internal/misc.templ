@@ -44,6 +44,7 @@ templ Head() {
 			<a href="/" class={ "bg-muave p-2 text-dark hover:underline" }>Alan Daniels</a>
 			<nav class="ml-auto mr-8 flex h-fit w-fit self-center text-text">
 				<a href="/about" class="bg-dark p-1 m-1 rounded hover:text-muave">About</a>
+				<a href="/blog" class="bg-dark p-1 m-1 rounded hover:text-muave">Blog</a>
 				<a href="/now" class="bg-dark p-1 m-1 rounded hover:text-muave">Now</a>
 			</nav>
 		</div>
@@ -57,22 +58,30 @@ templ Tooltip(toolText string) {
 	</div>
 }
 
+var ImgSizes = "md:max-w-[40rem] xl:max-w-[50rem] 2xl:max-w-[60rem]"
+
 templ Img(src, alttext, class string) {
 	@Tooltip(alttext) {
-		<img src={ src } alt={ alttext } class={ "md:max-w-[40rem] xl:max-w-[50rem] 2xl:max-w-[60rem] rounded", class }/>
+		<img src={ src } alt={ alttext } class={ ImgSizes, "rounded", class }/>
 	}
 }
 
 templ Title(title string) {
-	<h1 class="text-4xl pt-5 font-semibold">{ title }</h1>
+	<h1 class="text-4xl pt-5 font-bold">{ title }</h1>
 }
 
 templ Section(title string) {
-	<h2 class="text-2xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h2>
+	<h2 class="text-2xl pt-5 font-bold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h2>
 	{ children... }
 }
 
 templ SubSection(title string) {
 	<h3 class="text-xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h3>
 	{ children... }
+}
+
+templ Spoiler() {
+	<span class={ "text-transparent bg-surface-100 rounded mx-1" , "hover:text-text aria-selected:text-text" }>
+		{ children... }
+	</span>
 }
