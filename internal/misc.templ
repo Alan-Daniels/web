@@ -87,7 +87,7 @@ templ Spoiler() {
 }
 
 templ Code() {
-	<div class="bg-surface-100 p-4 my-1">
+	<div class="bg-surface-100 p-4 my-1 overflow-x-scroll">
 		<pre>
 			<code>
 				{ children... }
@@ -101,8 +101,17 @@ templ Link(uri templ.SafeURL) {
 		{ children... }
 	</a>
 }
+
 templ OutLink(uri templ.SafeURL) {
 	<a href={ uri } class="text-muave hover:underline" target="_blank">
 		{ children... }
 	</a>
+}
+
+templ NamedLI(name string) {
+	<li class="ml-4">
+		<span class="font-semibold -ml-4">{ name }</span>
+		<br/>
+		{ children... }
+	</li>
 }

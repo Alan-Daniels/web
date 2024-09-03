@@ -2,11 +2,11 @@ package buildinggowebapps
 
 import (
 	. "github.com/Alan-Daniels/web/internal"
-	"github.com/Alan-Daniels/web/internal/blog/data"
+	. "github.com/Alan-Daniels/web/internal/blog/data"
 	"time"
 )
 
-var Post = data.BlogPost{
+var Post = BlogPost{
 	//PublishTime: time.Date(2024, time.September, 02, 0, 0, 0, 0, TimeZoneSydney),
 	PublishTime: time.Now(),
 	SafeName:    "building-web-apps-with-go-and-tailwind",
@@ -22,69 +22,96 @@ templ head() {
 	<p>This blog post is a behind-the-scenes look at how I put it all together, including the specific technologies I used, and what I learned along the way.</p>
 }
 
-var textCode = `This is some code;
-yep, a newline
-;;`
+var setupNix = `$ nix flake init -t github:nix-community/gomod2nix#app
+wrote: /home/[...]/web/.gitignore
+wrote: /home/[...]/web/default.nix
+wrote: /home/[...]/web/flake.nix
+wrote: /home/[...]/web/go.mod
+wrote: /home/[...]/web/gomod2nix.toml
+wrote: /home/[...]/web/main.go
+wrote: /home/[...]/web/shell.nix`
 
-templ NamedLI(name string) {
-	<li class="ml-4">
-		<span class="font-semibold -ml-4">{ name }</span>
-		<br/>
-		{ children... }
-	</li>
-}
+var setupGit = `$ git init
+Initialized empty Git repository in /home/[...]/web/.git/`
+
+var setupGo = `$ go mod init github.com/Alan-Daniels/web
+go: creating new go.mod: module github.com/Alan-Daniels/web`
+
+var setupAir = `$ air init
+
+  __    _   ___
+ / /\  | | | |_)
+/_/--\ |_| |_| \_ (devel), built with Go go1.22.5
+
+.air.toml file created to the current directory with the default settings`
 
 templ body() {
-	@SubSection("Note")
-	<p>Please keep in mind that this post is more of a showcase than a definitive guide.</p>
-	<p>While I'll be sharing my experiences, it's not intended to cover a lot of the troubleshooting I've gone through to get to the result I have.</p>
-	@Section("Defining the success criteria")
-	// TODO: un-dotpoint
-	<ul>
-		<li>- Needs to be simple enough to be launched in a day</li>
-		<li>- Needs to have room to grow beyond being static site</li>
-		<li>- Needs to be secure enough to stay up with little supervision</li>
-	</ul>
-	@Section("Tooling & Libraries")
-	<p>If you'd like to follow allong, I use the following tools:</p>
-	<ul class="mb-2">
-		@NamedLI("Go toolchain") {
-			I prefer Go version 1.22 and above as it fixes loop weirdness present in previous versions.
-			<br/>
-			If you want to develop on earlier toolchains anyway, make sure you are aware of 
-			@OutLink(templ.SafeURL("https://go.dev/blog/loopvar-preview")) {
-				the way loop variables work
+	@SubSection("Note") {
+		<p>Please keep in mind that this post is more of a showcase than a definitive guide.</p>
+		<p>While I'll be sharing my experiences, it's not intended to cover a lot of the troubleshooting I've gone through to get to the result I have.</p>
+	}
+	@Section("Defining the success criteria") {
+		// TODO: un-dotpoint
+		<ul>
+			<li>- Needs to be simple enough to be launched in a day</li>
+			<li>- Needs to have room to grow beyond being static site</li>
+			<li>- Needs to be secure enough to stay up with little supervision</li>
+		</ul>
+	}
+	@Section("Tooling & Libraries") {
+		<p>If you'd like to follow along, I use the following tools:</p>
+		<ul class="mb-2">
+			@NamedLI("Go toolchain") {
+				I prefer Go version 1.22 and above as it fixes loop weirdness present in previous versions.
+				<br/>
+				If you want to develop on earlier toolchains anyway, make sure you are aware of 
+				@OutLink(templ.SafeURL("https://go.dev/blog/loopvar-preview")) {
+					the way loop variables work
+				}
+				.
+			}
+			@NamedLI("Air") {
+				@OutLink("https://github.com/air-verse/air") {
+					Live reload for Go apps
+				}
+				.
+			}
+			@NamedLI("NodeJS") {
+				Specifically, this is for `npx` to build tailwind css.
+			}
+			@NamedLI("Templ") {
+				Templ is a code-generation tool that lets you write html fragments with your go code.
+				<br/>
+				I suggest you take a look 
+				@OutLink(templ.SafeURL("https://templ.guide/")) {
+					at their to-the-point docs
+				}
+				.
+			}
+		</ul>
+		<p>Additionally, I'm using the <span class="font-semibold">Echo</span> http library for its lightweight feel and support for convienent middleware modules.</p>
+		<p>
+			@OutLink("https://echo.labstack.com/") {
+				You can check out Echo here
 			}
 			.
+		</p>
+	}
+	@Section("Setting up the dev environment") {
+		@Code() {
+			{ setupNix }
 		}
-		@NamedLI("Air") {
-			@OutLink("https://github.com/air-verse/air") {
-				Live reload for Go apps
-			}
-			.
+		While this isn't important for short-term, having nix handle the build of our application will make consistent deployment later much more consistent.
+		@Code() {
+			{ setupGit }
 		}
-		@NamedLI("NodeJS") {
-			Specifically, this is for `npx` to build tailwind css.
+		@Code() {
+			{ setupGo }
 		}
-		@NamedLI("Templ") {
-			Templ is a code-generation tool that lets you write html fragments with your go code.
-			<br/>
-			I suggest you take a look 
-			@OutLink(templ.SafeURL("https://templ.guide/")) {
-				at their to-the-point docs
-			}
-			.
+		@Code() {
+			{ setupAir }
 		}
-	</ul>
-	<p>Additionally, I'm using the <span class="font-semibold">Echo</span> http library for its lightweight feel and support for convienent middleware modules.</p>
-	<p>
-		@OutLink("https://echo.labstack.com/") {
-			You can check out Echo here
-		}
-		.
-	</p>
-	@Section("Rest coming soon")
-	@Img("https://media.tenor.com/AP6Hq6uLPuIAAAAi/sorry-bow.gif", "", "mx-auto")
+	}
 	//@Section("Outro")
 	//<p>
 	//	Feel free to check out my repo 
@@ -94,4 +121,5 @@ templ body() {
 	//	.
 	//</p>
 	//@Section("Coming up next")
+	@BlogNotDoneSection()
 }

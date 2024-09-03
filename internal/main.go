@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"embed"
+	_ "embed"
 	"net/http"
 	"time"
 
@@ -11,8 +11,6 @@ import (
 
 //go:embed commit.txt
 var Commit string
-
-var unused embed.FS
 
 var TimeZoneSydney, _ = time.LoadLocation("Australia/Sydney")
 
