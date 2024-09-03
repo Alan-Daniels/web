@@ -16,6 +16,7 @@ import (
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/blog"
+	"github.com/Alan-Daniels/web/internal/blog/data"
 )
 
 func main() {
@@ -37,9 +38,9 @@ func main() {
 	//projects.GET("", ProjectsHandler)
 
 	appblog := app.Group("/blog")
-	appblog.GET("", ComponentHandler(blog.BlogRoot))
-	for _, blogPost := range blog.BlogPosts {
-		appblog.GET(fmt.Sprintf("/%s", blogPost.SafeName), blogPost.Handler)
+	appblog.GET("", data.IndexHandler(blog.BlogPosts))
+	for _, post := range blog.BlogPosts {
+		appblog.GET(fmt.Sprintf("/%s", post.SafeName), post.Handler())
 	}
 
 	app.Use(middleware.Gzip())

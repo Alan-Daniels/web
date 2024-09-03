@@ -3,13 +3,19 @@ package internal
 templ Now() {
 	@Page() {
 		@Title("What I'm doing now")
-		<p class="text-sm font-thin">(This is a now page, and if you have your own site, <a href="https://nownownow.com/about" class="text-muave hover:underline" target="_blank">you should make one</a>, too.)</p>
+		<p class="text-sm font-thin">
+			(This is a now page, and if you have your own site, 
+			@OutLink(templ.SafeURL("https://nownownow.com/about")) {
+				you should make one
+			}
+			, too.)
+		</p>
 		@Section("This Season") {
 			<p>
 				I'm done with Uni and looking to get into some personal interests for this Spring/Summer.
 				For the most part I am looking at Gardening (I'd really like to figure out permaculture).
 			</p>
-			@Img("/assets/2024-08-29_spring-garden-beginning-scaled.jpg", "The start of my spring garden - 2024", "mx-auto my-3")
+			@Img("/assets/2024-08-29_spring-garden-beginning-scaled.jpg", "The start of my spring garden - 2024", "aspect-video mx-auto my-3")
 			<p>
 				Above is the start of my spring garden. I will likely make a page for it and any additions.
 			</p>

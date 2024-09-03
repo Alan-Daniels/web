@@ -71,12 +71,12 @@ templ Title(title string) {
 }
 
 templ Section(title string) {
-	<h2 class="text-2xl pt-5 font-bold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h2>
+	<h2 class="text-2xl pt-5 font-bold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title } <a class="text-muave hover:underline" href={ templ.SafeURL("#" + strings.ToLower(strings.ReplaceAll(title, " ", "-"))) }>#</a></h2>
 	{ children... }
 }
 
 templ SubSection(title string) {
-	<h3 class="text-xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title }</h3>
+	<h3 class="text-xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title } <a class="text-muave hover:underline" href={ templ.SafeURL("#" + strings.ToLower(strings.ReplaceAll(title, " ", "-"))) }>#</a></h3>
 	{ children... }
 }
 
@@ -84,4 +84,25 @@ templ Spoiler() {
 	<span class={ "text-transparent bg-surface-100 rounded mx-1" , "hover:text-text aria-selected:text-text" }>
 		{ children... }
 	</span>
+}
+
+templ Code() {
+	<div class="bg-surface-100 p-4 my-1">
+		<pre>
+			<code>
+				{ children... }
+			</code>
+		</pre>
+	</div>
+}
+
+templ Link(uri templ.SafeURL) {
+	<a href={ uri } class="text-muave hover:underline">
+		{ children... }
+	</a>
+}
+templ OutLink(uri templ.SafeURL) {
+	<a href={ uri } class="text-muave hover:underline" target="_blank">
+		{ children... }
+	</a>
 }

@@ -28,6 +28,7 @@ buildGoApplication {
       else self.dirtyRev;
   in ''
     echo ${rev} > internal/commit.txt
+    go run github.com/a-h/templ/cmd/templ generate
   '';
   postInstall = let
   in ''
