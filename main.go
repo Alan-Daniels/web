@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
@@ -65,8 +66,11 @@ func main() {
 		}()
 	}
 
-	// rate limit to 20 requests per second
-	app.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
+	app.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+		Rate:      rate.Limit(2),
+		Burst:     5,
+		ExpiresIn: 3 * time.Minute,
+	})))
 
 	// recover from panics
 	app.Use(middleware.Recover())

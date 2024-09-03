@@ -31,8 +31,10 @@ buildGoApplication {
     go run github.com/a-h/templ/cmd/templ generate
   '';
   postInstall = let
+    tailwind = pkgs.tailwindcss;
   in ''
     mkdir $out/assets
     cp -r ${./assets}/* $out/assets
+    ${tailwind}/bin/tailwindcss -i ${./assets/input.css} -o $out/assets/styles.css --minify
   '';
 }
