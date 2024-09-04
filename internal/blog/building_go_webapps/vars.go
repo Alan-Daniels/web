@@ -59,7 +59,9 @@ var tree = `$ tree -a
 var workingWithEchoImports = `package main
 
 import (
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/Alan-Daniels/web/internal"
 	
 	[...]

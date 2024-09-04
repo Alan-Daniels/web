@@ -98,6 +98,12 @@ templ Code(name string) {
 	</div>
 }
 
+templ InlineCode() {
+	<span class="bg-surface-100 p-0.5 rounded">
+		{ children... }
+	</span>
+}
+
 templ Link(uri templ.SafeURL) {
 	<a href={ uri } class="text-muave hover:underline">
 		{ children... }
