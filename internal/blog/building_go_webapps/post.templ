@@ -7,14 +7,13 @@ import (
 )
 
 var Post = BlogPost{
-	//PublishTime: time.Date(2024, time.September, 02, 0, 0, 0, 0, TimeZoneSydney),
-	PublishTime: time.Now(),
+	PublishTime: time.Date(2024, time.September, 04, 0, 0, 0, 0, TimeZoneSydney),
 	SafeName:    "building-web-apps-with-go-and-tailwind",
 	PostTitle:   "Building web apps with Go and Tailwind",
 	PostHead:    head,
 	PostBody:    body,
 	HeroImage:   "/assets/2024-09-01_building-web-apps-with-go-and-tailwind.jpg",
-	ReadTimeAvg: "99h",
+	ReadTimeAvg: "10-15m",
 }
 
 templ head() {
