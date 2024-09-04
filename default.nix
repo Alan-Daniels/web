@@ -35,6 +35,6 @@ buildGoApplication {
   in ''
     mkdir $out/assets
     cp -r ${./assets}/* $out/assets
-    ${tailwind}/bin/tailwindcss -i ${./assets/input.css} -o $out/assets/styles.css --minify
+    ${tailwind}/bin/tailwindcss -i ${./internal/input.css} -o $out/assets/styles.css --minify
   '';
 }

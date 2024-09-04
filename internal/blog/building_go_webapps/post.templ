@@ -22,41 +22,15 @@ templ head() {
 	<p>This blog post is a behind-the-scenes look at how I put it all together, including the specific technologies I used, and what I learned along the way.</p>
 }
 
-var setupNix = `$ nix flake init -t github:nix-community/gomod2nix#app
-wrote: /home/[...]/web/.gitignore
-wrote: /home/[...]/web/default.nix
-wrote: /home/[...]/web/flake.nix
-wrote: /home/[...]/web/go.mod
-wrote: /home/[...]/web/gomod2nix.toml
-wrote: /home/[...]/web/main.go
-wrote: /home/[...]/web/shell.nix`
-
-var setupGit = `$ git init
-Initialized empty Git repository in /home/[...]/web/.git/`
-
-var setupGo = `$ go mod init github.com/Alan-Daniels/web
-go: creating new go.mod: module github.com/Alan-Daniels/web`
-
-var setupAir = `$ air init
-
-  __    _   ___
- / /\  | | | |_)
-/_/--\ |_| |_| \_ (devel), built with Go go1.22.5
-
-.air.toml file created to the current directory with the default settings`
-
 templ body() {
 	@SubSection("Note") {
 		<p>Please keep in mind that this post is more of a showcase than a definitive guide.</p>
 		<p>While I'll be sharing my experiences, it's not intended to cover a lot of the troubleshooting I've gone through to get to the result I have.</p>
 	}
 	@Section("Defining the success criteria") {
-		// TODO: un-dotpoint
-		<ul>
-			<li>- Needs to be simple enough to be launched in a day</li>
-			<li>- Needs to have room to grow beyond being static site</li>
-			<li>- Needs to be secure enough to stay up with little supervision</li>
-		</ul>
+		<p>My goal is to build a go webapp with Tailwind that meets three key criteria.</p>
+		<p>It needs to be simple enough to launch in a day. It should have room to grow beyond being just a static site. And, it must be secure enough to run with little supervision required.</p>
+		<p></p>
 	}
 	@Section("Tooling & Libraries") {
 		<p>If you'd like to follow along, I use the following tools:</p>
@@ -98,28 +72,77 @@ templ body() {
 		</p>
 	}
 	@Section("Setting up the dev environment") {
-		@Code() {
-			{ setupNix }
-		}
-		While this isn't important for short-term, having nix handle the build of our application will make consistent deployment later much more consistent.
-		@Code() {
-			{ setupGit }
-		}
-		@Code() {
+		//TODO: introduction to section needed
+		@Code("shell") {
 			{ setupGo }
 		}
-		@Code() {
+		@Code("shell") {
+			{ setupNix }
+		}
+		<p>
+			While 
+			<span class="font-semibold">
+				@OutLink(templ.SafeURL("https://nixos.org/")) {
+					Nix
+				}
+			</span> isn't important for short-term, having nix handle the build of our application will make consistent deployment later an easier endeavour.
+		</p>
+		<p>The error is ok btw ;)</p>
+		@Code("shell") {
+			{ setupGit }
+		}
+		@Code("shell") {
 			{ setupAir }
 		}
 	}
-	//@Section("Outro")
-	//<p>
-	//	Feel free to check out my repo 
-	//	@OutLink(templ.SafeURL("https://github.com/Alan-Daniels/web")) {
-	//		on github
-	//	}
-	//	.
-	//</p>
-	//@Section("Coming up next")
-	@BlogNotDoneSection()
+	@SubSection("Project Skeleton") {
+		<p>We will be creating a number of these files in further sections.</p>
+		@Code("shell") {
+			{ tree }
+		}
+	}
+	@Section("Working with Echo") {
+		@Code("main.go") {
+			{ workingWithEchoImports }
+		}
+		@Code("main.go") {
+			{ workingWithEchoMain }
+		}
+		//todo
+	}
+	@SubSection("SSL Support") {
+		@Code("main.go") {
+			{ sslSupport }
+		}
+		//todo
+	}
+	@Section("Working with Templ") {
+		@Code("internal/home.templ") {
+			{ workingWithTempl }
+		}
+		//todo
+	}
+	@SubSection("Echo & Templ glue code") {
+		@Code("main.go") {
+			{ templEchoGlue }
+		}
+		//todo
+	}
+	@Section("Closing Out") {
+		<p>
+			Feel free to check out my repo 
+			@OutLink(templ.SafeURL("https://github.com/Alan-Daniels/web")) {
+				on github
+			}
+			.
+		</p>
+		<p>
+			In the next post 
+			@Spoiler() {
+				coming soon
+			}
+			, I will cover building the package with nix, and a short example of using it in a system flake.
+		</p>
+	}
+	//@BlogNotDoneSection()
 }

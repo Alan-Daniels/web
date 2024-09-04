@@ -1,9 +1,6 @@
 package data
 
-import (
-	. "github.com/Alan-Daniels/web/internal"
-)
-
+import . "github.com/Alan-Daniels/web/internal"
 
 templ blogRoot(posts []BlogPost) {
 	@Page() {
@@ -17,8 +14,9 @@ templ blogRoot(posts []BlogPost) {
 }
 
 templ blogPostPreview(post *BlogPost) {
-	<li class="relative flex flex-col sm:flex-row xl:flex-col items-start">
-		<div class="order-1 sm:ml-6 xl:ml-0 w-full">
+	//<li class={ "relative flex flex-col sm:flex-row xl:flex-col items-start", "bg-surface-100 shadow drop-shadow-2xl rounded p-2" }>
+	<li class={ "relative flex flex-col sm:flex-row xl:flex-col items-start" }>
+		<div class={ "order-1 sm:ml-6 xl:ml-0 w-full" }>
 			<h3 class="mb-1 text-slate-900 font-semibold">
 				{ post.PostTitle }
 				<span class="text-sm float-right font-normal">{ post.PublishTime.Format("2006-01-02") }</span>
@@ -53,15 +51,18 @@ templ blogPostPreview(post *BlogPost) {
 
 templ blogPostView(post *BlogPost) {
 	@Page() {
-		@Title(post.PostTitle)
-		<div class="md:flex py-4">
-			<div>
-				@post.PostHead()
+		<div class="bg-surface-100 px-4 shadow drop-shadow-2xl rounded">
+			<span class="text-center">
+				@Title(post.PostTitle)
+			</span>
+			<div class="md:flex py-4">
+				<div>
+					@post.PostHead()
+				</div>
+				<div class="flex-shrink-[0.6] pl-2"><img src={ post.HeroImage } alt="" class={ ImgSizes, "aspect-video shadow-md rounded-lg w-full" }/></div>
 			</div>
-			<div class="flex-shrink-[0.6] pl-2"><img src={ post.HeroImage } alt="" class={ ImgSizes, "aspect-video shadow-md rounded-lg w-full" }/></div>
 		</div>
 		@post.PostBody()
-		<div class="pb-[10rem]"></div>
 	}
 }
 

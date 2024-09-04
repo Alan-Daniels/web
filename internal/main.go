@@ -20,7 +20,8 @@ func ComponentHandler(comp func() templ.Component) func(e echo.Context) error {
 	}
 }
 
-// This custom Render replaces Echo's echo.Context.Render() with templ's templ.Component.Render().
+// This custom Render replaces Echo's echo.Context.Render()
+// with templ's templ.Component.Render().
 func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 	buf := templ.GetBuffer()
 	defer templ.ReleaseBuffer(buf)

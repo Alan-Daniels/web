@@ -30,6 +30,7 @@ templ Page() {
 					{ children... }
 				</div>
 			</div>
+			<div class="pb-[8rem]"></div>
 		</body>
 	</html>
 }
@@ -81,14 +82,15 @@ templ SubSection(title string) {
 }
 
 templ Spoiler() {
-	<span class={ "text-transparent bg-surface-100 rounded mx-1" , "hover:text-text aria-selected:text-text" }>
+	<span class={ "text-transparent bg-surface-100 rounded" , "hover:text-text aria-selected:text-text" }>
 		{ children... }
 	</span>
 }
 
-templ Code() {
-	<div class="bg-surface-100 p-4 my-1 overflow-x-scroll">
-		<pre>
+templ Code(name string) {
+	<div class="bg-surface-100 my-1 overflow-x-scroll">
+		<h4 class="px-4 py-1 bg-surface-200 w-fit">{ name }</h4>
+		<pre class="px-4 pb-4 pt-1">
 			<code>
 				{ children... }
 			</code>
@@ -109,7 +111,7 @@ templ OutLink(uri templ.SafeURL) {
 }
 
 templ NamedLI(name string) {
-	<li class="ml-4">
+	<li class="ml-4 mb-2">
 		<span class="font-semibold -ml-4">{ name }</span>
 		<br/>
 		{ children... }

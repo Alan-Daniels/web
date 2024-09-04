@@ -100,7 +100,6 @@ func customHTTPServer(e *echo.Echo, webroot string) {
 		Addr:    ":4343",
 		Handler: e, // set Echo as handler
 		TLSConfig: &tls.Config{
-			//Certificates: nil, // <-- s.ListenAndServeTLS will populate this field
 			GetCertificate: autoTLSManager.GetCertificate,
 			NextProtos:     []string{acme.ALPNProto},
 		},
