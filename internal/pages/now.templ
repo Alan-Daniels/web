@@ -1,4 +1,9 @@
-package internal
+package pages
+
+import (
+	. "github.com/Alan-Daniels/web/internal"
+	buildinggowebapps "github.com/Alan-Daniels/web/internal/blog/building_go_webapps"
+)
 
 templ Now() {
 	@Page() {
@@ -22,13 +27,17 @@ templ Now() {
 		}
 		@Section("This Website") {
 			<p>
-				There will 
-				@Spoiler() {
-					at some point
-				}
-				<span class="mr-1"></span>be a blog on this website where you can find little snippets on how I've figured things out over time.
+				I am currently working on a blog on this website where you can find little snippets on how I've figured things out over time.
 				<br/>
-				The website itself, and more importantly, its deployment & maintanence will be one of the first topics.
+				The 
+				@Link(buildinggowebapps.Post.Url()) {
+					website itself
+				}
+				, and more importantly, 
+				@Link(templ.SafeURL("#")) {
+					its deployment & maintanence 
+				}
+				will be one of the first topics.
 			</p>
 		}
 	}

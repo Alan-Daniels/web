@@ -18,6 +18,7 @@ import (
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/blog"
 	"github.com/Alan-Daniels/web/internal/blog/data"
+	"github.com/Alan-Daniels/web/internal/pages"
 )
 
 func main() {
@@ -31,9 +32,9 @@ func main() {
 	app.Static("/assets", (*webroot)+"/assets")
 	app.File("/favicon.ico", (*webroot)+"/assets/favicon.ico")
 
-	app.GET("/", ComponentHandler(Home))
-	app.GET("/now", ComponentHandler(Now))
-	app.GET("/about", ComponentHandler(About))
+	app.GET("/", ComponentHandler(pages.Home))
+	app.GET("/now", ComponentHandler(pages.Now))
+	app.GET("/about", ComponentHandler(pages.About))
 
 	//projects := app.Group("/projects")
 	//projects.GET("", ProjectsHandler)

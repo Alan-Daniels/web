@@ -1,0 +1,19 @@
+package pages
+
+import . "github.com/Alan-Daniels/web/internal"
+
+templ About() {
+	@Page() {
+		@Title("About me")
+		<p>My name's Alan.</p>
+		<p>I live in Sydney.</p>
+		<p>I'm not good at lengthy text, this is what I intend to strengthen with this site.</p>
+		<p>
+			If you'd like to reach out, I'm on 
+			@OutLink(templ.SafeURL("https://github.com/Alan-Daniels")) {
+				github
+			}
+			.
+		</p>
+	}
+}
