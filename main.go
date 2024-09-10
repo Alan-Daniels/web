@@ -158,7 +158,7 @@ func customHTTPServer(e *echo.Echo, webroot string) {
 		Prompt: autocert.AcceptTOS,
 		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
 		Cache:      autocert.DirCache(webroot + "/.cache"),
-		HostPolicy: autocert.HostWhitelist("alandaniels.homes", "alan.in.net"),
+		HostPolicy: autocert.HostWhitelist("alan.in.net", "www.alan.in.net"),
 	}
 	s := http.Server{
 		Addr:    ":4343",
