@@ -31,6 +31,7 @@ func main() {
 	flag.Parse()
 
 	app := echo.New()
+	app.IPExtractor = echo.ExtractIPDirect()
 
 	app.Static("/assets", (*webroot)+"/assets")
 	app.File("/favicon.ico", (*webroot)+"/assets/favicon.ico")
@@ -52,7 +53,6 @@ func main() {
 	if err != nil {
 		app.Logger.Fatal(err)
 	}
-	app.IPExtractor = echo.ExtractIPDirect()
 	logger := zerolog.New(logfile)
 	app.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:          true,
