@@ -8,6 +8,7 @@ require (
 	github.com/a-h/templ v0.2.771
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
+	github.com/rs/zerolog v1.33.0
 	golang.org/x/crypto v0.26.0
 	golang.org/x/time v0.5.0
 )

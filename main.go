@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/labstack/echo-contrib/echoprometheus"
@@ -14,6 +15,8 @@ import (
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/time/rate"
+
+	"github.com/rs/zerolog"
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/blog"
@@ -45,13 +48,49 @@ func main() {
 		appblog.GET(fmt.Sprintf("/%s", post.SafeName), post.Handler())
 	}
 
+	logfile, err := os.OpenFile((*webroot)+"/log.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		app.Logger.Fatal(err)
+	}
+	app.IPExtractor = echo.ExtractIPDirect()
+	logger := zerolog.New(logfile)
+	app.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:          true,
+		LogStatus:       true,
+		LogRemoteIP:     true,
+		LogResponseSize: true,
+		LogError:        true,
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			var msg *zerolog.Event
+			if v.Error != nil {
+				msg = logger.Error().Err(v.Error)
+			} else if v.Status == 404 || v.Status == 302 || v.Status == 301 {
+				msg = logger.Warn().Int64("RespSize", v.ResponseSize)
+			} else if v.Status == 429 {
+				msg = logger.Log()
+			} else if v.Status == 200 {
+				// prometheus already gives plenty of insight for these requests
+				return nil
+			} else {
+				// catch-all
+				msg = logger.Log()
+			}
+			msg.Timestamp().
+				Str("RemoteIP", v.RemoteIP).
+				Str("URI", v.URI).
+				Int("status", v.Status).
+				Msg("request")
+
+			return nil
+		},
+	}))
+
 	app.Use(middleware.Gzip())
 	app.Use(middleware.Secure())
 
 	// TODO: CORS, CSRF
 	// site doesn't have interactability yet so these aren't critical
 
-	// TODO: add logger for better error insight
 	// TODO: figure out some analytics
 	if (*metricsPort) != "" {
 		app.Use(echoprometheus.NewMiddlewareWithConfig(echoprometheus.MiddlewareConfig{
