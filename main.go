@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo-contrib/echoprometheus"
@@ -53,30 +54,36 @@ func main() {
 	if err != nil {
 		app.Logger.Fatal(err)
 	}
-	logger := zerolog.New(logfile)
+	zerolog.TimestampFieldName = "t"
+	zerolog.LevelFieldName = "l"
+	zerolog.MessageFieldName = "m"
+	Logger = zerolog.New(logfile).With().Timestamp().Logger()
 	app.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:          true,
 		LogStatus:       true,
 		LogRemoteIP:     true,
 		LogResponseSize: true,
 		LogError:        true,
+		LogHeaders:      []string{"Cookie"},
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			var msg *zerolog.Event
 			if v.Error != nil {
-				msg = logger.Error().Err(v.Error)
-			} else if v.Status == 404 || v.Status == 302 || v.Status == 301 {
-				msg = logger.Warn().Int64("RespSize", v.ResponseSize)
+				msg = Logger.Error().Err(v.Error)
 			} else if v.Status == 429 {
-				msg = logger.Log()
-			} else if v.Status == 200 {
-				// prometheus already gives plenty of insight for these requests
-				return nil
+				msg = Logger.Info()
+			} else if v.Status >= 300 {
+				msg = Logger.Warn()
+
+			} else if v.Status >= 200 {
+				msg = Logger.Info().
+					Dict("Cookies", parseCookies(v.Headers["Cookie"]))
 			} else {
 				// catch-all
-				msg = logger.Log()
+				msg = Logger.Info()
 			}
-			msg.Timestamp().
+			msg.
 				Str("RemoteIP", v.RemoteIP).
+				Int64("RespSize", v.ResponseSize).
 				Str("URI", v.URI).
 				Int("status", v.Status).
 				Msg("request")
@@ -124,6 +131,23 @@ func main() {
 	} else {
 		app.Logger.Fatal(app.Start(":8080"))
 	}
+}
+
+func parseCookies(headers []string) *zerolog.Event {
+	cookies := zerolog.Dict()
+
+	for _, header := range headers {
+		pairs := strings.Split(header, ";")
+		for _, pair := range pairs {
+			parts := strings.Split(pair, "=")
+			if len(parts) != 2 {
+				continue
+			}
+			cookies.Str(strings.Trim(parts[0], " "), strings.Trim(parts[1], " "))
+		}
+	}
+
+	return cookies
 }
 
 func customHTTPServer(e *echo.Echo, webroot string) {

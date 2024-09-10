@@ -7,12 +7,15 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog"
 )
 
 //go:embed commit.txt
 var Commit string
 
 var TimeZoneSydney, _ = time.LoadLocation("Australia/Sydney")
+
+var Logger zerolog.Logger
 
 func ComponentHandler(comp func() templ.Component) func(e echo.Context) error {
 	return func(e echo.Context) error {
