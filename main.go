@@ -62,9 +62,10 @@ func main() {
 		LogURI:          true,
 		LogStatus:       true,
 		LogRemoteIP:     true,
-		LogResponseSize: true,
 		LogError:        true,
 		LogHeaders:      []string{"Cookie"},
+		LogMethod:       true,
+		LogUserAgent:    true,
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			var msg *zerolog.Event
 			if v.Error != nil {
@@ -83,9 +84,10 @@ func main() {
 			}
 			msg.
 				Str("RemoteIP", v.RemoteIP).
-				Int64("RespSize", v.ResponseSize).
-				Str("URI", v.URI).
+				Str("Agent", v.UserAgent).
+				Str("Method", v.Method).
 				Int("status", v.Status).
+				Str("URI", v.URI).
 				Msg("request")
 
 			return nil
