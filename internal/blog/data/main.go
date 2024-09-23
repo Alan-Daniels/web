@@ -23,6 +23,10 @@ type BlogPost struct {
 
 func (post *BlogPost) Handler() func(e echo.Context) error {
 	return func(e echo.Context) error {
+		_, err := InitSession(e)
+		if err != nil {
+			return err
+		}
 		return Render(e, http.StatusOK, blogPostView(post))
 	}
 }
@@ -33,6 +37,10 @@ func (post *BlogPost) Url() templ.SafeURL {
 
 func IndexHandler(posts []BlogPost) func(e echo.Context) error {
 	return func(e echo.Context) error {
+		_, err := InitSession(e)
+		if err != nil {
+			return err
+		}
 		return Render(e, http.StatusOK, blogRoot(posts))
 	}
 }

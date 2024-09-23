@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 )
@@ -19,6 +21,10 @@ var Logger zerolog.Logger
 
 func ComponentHandler(comp func() templ.Component) func(e echo.Context) error {
 	return func(e echo.Context) error {
+		_, err := InitSession(e)
+		if err != nil {
+			return err
+		}
 		return Render(e, http.StatusOK, comp())
 	}
 }
@@ -34,4 +40,24 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 	}
 
 	return ctx.HTML(statusCode, buf.String())
+}
+
+func InitSession(c echo.Context) (*sessions.Session, error) {
+	sess, err := session.Get("session", c)
+	if err != nil {
+		return sess, err
+	}
+	if sess.IsNew {
+		Logger.Debug().Msg("New session!!!")
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 7,
+			HttpOnly: true,
+		}
+		if err := sess.Save(c.Request(), c.Response()); err != nil {
+			return sess, err
+		}
+	}
+
+	return sess, nil
 }

@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/echoprometheus"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/crypto/acme"
@@ -59,13 +61,13 @@ func main() {
 	zerolog.MessageFieldName = "m"
 	Logger = zerolog.New(logfile).With().Timestamp().Logger()
 	app.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogURI:          true,
-		LogStatus:       true,
-		LogRemoteIP:     true,
-		LogError:        true,
-		LogHeaders:      []string{"Cookie"},
-		LogMethod:       true,
-		LogUserAgent:    true,
+		LogURI:       true,
+		LogStatus:    true,
+		LogRemoteIP:  true,
+		LogError:     true,
+		LogHeaders:   []string{"Cookie"},
+		LogMethod:    true,
+		LogUserAgent: true,
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			var msg *zerolog.Event
 			if v.Error != nil {
@@ -96,6 +98,8 @@ func main() {
 
 	app.Use(middleware.Gzip())
 	app.Use(middleware.Secure())
+
+	app.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
 	// TODO: CORS, CSRF
 	// site doesn't have interactability yet so these aren't critical
@@ -153,9 +157,6 @@ func parseCookies(headers []string) *zerolog.Event {
 }
 
 func customHTTPServer(e *echo.Echo, webroot string) {
-	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
-
 	autoTLSManager := autocert.Manager{
 		Prompt: autocert.AcceptTOS,
 		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
