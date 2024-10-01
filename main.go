@@ -34,7 +34,7 @@ func main() {
 	flag.Parse()
 
 	app := echo.New()
-	app.IPExtractor = echo.ExtractIPDirect()
+	app.IPExtractor = echo.ExtractIPFromXFFHeader()
 
 	app.Static("/assets", (*webroot)+"/assets")
 	app.File("/favicon.ico", (*webroot)+"/assets/favicon.ico")
