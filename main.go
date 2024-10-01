@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"errors"
 	"flag"
 	"fmt"
@@ -15,8 +14,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"golang.org/x/crypto/acme"
-	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/time/rate"
 
 	"github.com/rs/zerolog"
@@ -28,7 +25,6 @@ import (
 )
 
 func main() {
-	flSSL := flag.Bool("ssl", false, "whether to start with ssl")
 	webroot := flag.String("root", ".", "where the files be ;)")
 	metricsPort := flag.String("metrics", "", "metrics port, default to no metrics")
 	flag.Parse()
@@ -132,11 +128,7 @@ func main() {
 		RedirectCode: http.StatusMovedPermanently,
 	}))
 
-	if *flSSL {
-		customHTTPServer(app, *webroot)
-	} else {
-		app.Logger.Fatal(app.Start(":8080"))
-	}
+	app.Logger.Fatal(app.Start(":8080"))
 }
 
 func parseCookies(headers []string) *zerolog.Event {
@@ -154,26 +146,4 @@ func parseCookies(headers []string) *zerolog.Event {
 	}
 
 	return cookies
-}
-
-func customHTTPServer(e *echo.Echo, webroot string) {
-	autoTLSManager := autocert.Manager{
-		Prompt: autocert.AcceptTOS,
-		// Cache certificates to avoid issues with rate limits (https://letsencrypt.org/docs/rate-limits)
-		Cache:      autocert.DirCache(webroot + "/.cache"),
-		HostPolicy: autocert.HostWhitelist("alan.in.net", "www.alan.in.net"),
-	}
-	s := http.Server{
-		Addr:    ":4343",
-		Handler: e, // set Echo as handler
-		TLSConfig: &tls.Config{
-			GetCertificate: autoTLSManager.GetCertificate,
-			NextProtos:     []string{acme.ALPNProto},
-		},
-		//ReadTimeout: 30 * time.Second, // use custom timeouts
-	}
-	go http.ListenAndServe(":8080", autoTLSManager.HTTPHandler(nil))
-	if err := s.ListenAndServeTLS("", ""); err != http.ErrServerClosed {
-		e.Logger.Fatal(err)
-	}
 }
