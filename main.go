@@ -26,8 +26,13 @@ import (
 
 func main() {
 	webroot := flag.String("root", ".", "where the files be ;)")
+	logdir := flag.String("logdir", ".", "where to put logs")
+	port := flag.String("port", "8080", "port to listen on")
 	metricsPort := flag.String("metrics", "", "metrics port, default to no metrics")
+	testtag := flag.String("tag", "notest", "testing tag to use")
 	flag.Parse()
+
+	TestTag = *testtag
 
 	app := echo.New()
 	app.IPExtractor = echo.ExtractIPFromXFFHeader()
@@ -48,7 +53,7 @@ func main() {
 		appblog.GET(fmt.Sprintf("/%s", post.SafeName), post.Handler())
 	}
 
-	logfile, err := os.OpenFile((*webroot)+"/log.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	logfile, err := os.OpenFile((*logdir)+"/"+*testtag+".log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	if err != nil {
 		app.Logger.Fatal(err)
 	}
@@ -56,41 +61,41 @@ func main() {
 	zerolog.LevelFieldName = "l"
 	zerolog.MessageFieldName = "m"
 	Logger = zerolog.New(logfile).With().Timestamp().Logger()
-	app.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogURI:       true,
-		LogStatus:    true,
-		LogRemoteIP:  true,
-		LogError:     true,
-		LogHeaders:   []string{"Cookie"},
-		LogMethod:    true,
-		LogUserAgent: true,
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			var msg *zerolog.Event
-			if v.Error != nil {
-				msg = Logger.Error().Err(v.Error)
-			} else if v.Status == 429 {
-				msg = Logger.Info()
-			} else if v.Status >= 300 {
-				msg = Logger.Warn()
+	//app.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+	//	LogURI:       true,
+	//	LogStatus:    true,
+	//	LogRemoteIP:  true,
+	//	LogError:     true,
+	//	LogHeaders:   []string{"Cookie"},
+	//	LogMethod:    true,
+	//	LogUserAgent: true,
+	//	LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+	//		var msg *zerolog.Event
+	//		if v.Error != nil {
+	//			msg = Logger.Error().Err(v.Error)
+	//		} else if v.Status == 429 {
+	//			msg = Logger.Info()
+	//		} else if v.Status >= 300 {
+	//			msg = Logger.Warn()
 
-			} else if v.Status >= 200 {
-				msg = Logger.Info().
-					Dict("Cookies", parseCookies(v.Headers["Cookie"]))
-			} else {
-				// catch-all
-				msg = Logger.Info()
-			}
-			msg.
-				Str("RemoteIP", v.RemoteIP).
-				Str("Agent", v.UserAgent).
-				Str("Method", v.Method).
-				Int("status", v.Status).
-				Str("URI", v.URI).
-				Msg("request")
+	//		} else if v.Status >= 200 {
+	//			msg = Logger.Info().
+	//				Dict("Cookies", parseCookies(v.Headers["Cookie"]))
+	//		} else {
+	//			// catch-all
+	//			msg = Logger.Info()
+	//		}
+	//		msg.
+	//			Str("RemoteIP", v.RemoteIP).
+	//			Str("Agent", v.UserAgent).
+	//			Str("Method", v.Method).
+	//			Int("status", v.Status).
+	//			Str("URI", v.URI).
+	//			Msg("request")
 
-			return nil
-		},
-	}))
+	//		return nil
+	//	},
+	//}))
 
 	app.Use(middleware.Gzip())
 	app.Use(middleware.Secure())
@@ -128,7 +133,7 @@ func main() {
 		RedirectCode: http.StatusMovedPermanently,
 	}))
 
-	app.Logger.Fatal(app.Start(":8080"))
+	app.Logger.Fatal(app.Start(fmt.Sprintf(":%s", (*port))))
 }
 
 func parseCookies(headers []string) *zerolog.Event {

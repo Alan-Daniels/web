@@ -18,6 +18,7 @@ var Commit string
 var TimeZoneSydney, _ = time.LoadLocation("Australia/Sydney")
 
 var Logger zerolog.Logger
+var TestTag string
 
 func ComponentHandler(comp func() templ.Component) func(e echo.Context) error {
 	return func(e echo.Context) error {
