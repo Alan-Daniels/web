@@ -32,7 +32,7 @@
       tags.default = [
         {
           tag = "notest";
-          port = 8000;
+          port = 8080;
         }
         {
           tag = "test1";
