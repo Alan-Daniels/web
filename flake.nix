@@ -34,10 +34,6 @@
           tag = "notest";
           port = 8080;
         }
-        {
-          tag = "test1";
-          port = 8001;
-        }
       ];
     })
   );
