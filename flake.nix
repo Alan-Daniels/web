@@ -13,28 +13,42 @@
     flake-utils,
     gomod2nix,
   }: (
-    flake-utils.lib.eachDefaultSystem
-    (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+    (
+      flake-utils.lib.eachDefaultSystem
+      (system: let
+        pkgs = nixpkgs.legacyPackages.${system};
 
-      # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.
-      # This has no effect on other platforms.
-      callPackage = pkgs.darwin.apple_sdk_11_0.callPackage or pkgs.callPackage;
-      inherit self;
-    in {
-      packages.default = callPackage ./. {
-        inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
+        # The current default sdk for macOS fails to compile go projects, so we use a newer one for now.
+        # This has no effect on other platforms.
+        callPackage = pkgs.darwin.apple_sdk_11_0.callPackage or pkgs.callPackage;
         inherit self;
+      in {
+        packages.default = callPackage ./. {
+          inherit (gomod2nix.legacyPackages.${system}) buildGoApplication;
+          inherit self;
+        };
+        devShells.default = callPackage ./shell.nix {
+          inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
+        };
+      })
+    )
+    // {
+      nixosModules = rec {
+        web = import ./nixos self;
+        default = web;
       };
-      devShells.default = callPackage ./shell.nix {
-        inherit (gomod2nix.legacyPackages.${system}) mkGoEnv gomod2nix;
-      };
-      tags.default = [
-        {
-          tag = "notest";
-          port = 8080;
-        }
-      ];
-    })
+      nixosConfigurations.vm = let
+        system = "x86_64-linux";
+        pkgs = import nixpkgs {
+          system = system;
+        };
+      in
+        nixpkgs.lib.nixosSystem {
+          specialArgs = {inherit system pkgs;};
+          modules = [
+            (import ./nixos/configuration.nix self)
+          ];
+        };
+    }
   );
 }
