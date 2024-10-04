@@ -7,18 +7,37 @@ flake: {
 }: let
   website = flake.packages."${system}".default;
   cfg = config.services.website;
-  webOptions = with lib;
+  serverOptions = with lib;
     types.submodule {
       options = {
         port = mkOption {
           type = types.number;
         };
-        disableSSL = mkEnableOption "don't use ssl, usefull for internal testing";
-        enablePublicStats = mkEnableOption "show stats on stats.yourdomain.tld";
-        statsPort = mkOption {
+      };
+    };
+  databaseOptions = with lib;
+    types.submodule {
+      options = {
+        # todo
+      };
+    };
+  goaccessOptions = with lib;
+    types.submodule {
+      options = {
+        enable = mkEnableOption "add a stats.yourdomain.tld";
+        port = mkOption {
           type = types.number;
           default = 7890;
         };
+      };
+    };
+  webOptions = with lib;
+    types.submodule {
+      options = {
+        server = mkOption {type = serverOptions;};
+        database = mkOption {type = databaseOptions;};
+        goaccess = mkOption {type = goaccessOptions;};
+        disableSSL = mkEnableOption "don't use ssl, usefull for internal testing";
       };
     };
 in {
@@ -35,6 +54,10 @@ in {
     environment.systemPackages = [
       website
     ];
+    services.surrealdb = {
+      enable = true;
+      port = 7999;
+    };
     users.users.webhost = {
       isSystemUser = true;
       home = "/home/webhost";
@@ -45,17 +68,20 @@ in {
     services.caddy.enable = true;
     services.caddy.virtualHosts =
       lib.attrsets.concatMapAttrs (n: v: let
-        ssl = if v.disableSSL then "http://" else "";
+        ssl =
+          if v.disableSSL
+          then "http://"
+          else "";
       in {
         "${ssl}${n}" = {
           serverAliases = [
             "${ssl}www.${n}"
           ];
           extraConfig = ''
-            reverse_proxy "http://127.0.0.1:${toString v.port}"
+            reverse_proxy "http://127.0.0.1:${toString v.server.port}"
           '';
         };
-        "${ssl}stats.${n}" = lib.mkIf v.enablePublicStats {
+        "${ssl}stats.${n}" = lib.mkIf v.goaccess.enable {
           extraConfig = ''
             root * /var/lib/caddy/goaccess/${n}/
             file_server * browse
@@ -64,33 +90,44 @@ in {
               header Connection *Upgrade*
               header Upgrade websocket
             }
-            reverse_proxy @websockets http://127.0.0.1:${toString v.statsPort}
+            reverse_proxy @websockets http://127.0.0.1:${toString v.goaccess.port}
           '';
         };
       })
       cfg.instances;
     systemd.services =
       lib.attrsets.concatMapAttrs (n: v: let
-        prettyN = lib.replaceStrings ["."] ["-"] n;
-        logdir = "/home/webhost"; #todo: maybe move this?
+        safeN = lib.replaceStrings ["."] ["-"] n;
+        webconfig = (pkgs.formats.yaml {}).generate "config.yml" {
+          server = {
+            port = v.server.port;
+            hostname = n;
+          };
+          database = {
+            uri = let
+              cfg = config.services.surrealdb;
+            in "ws://${cfg.host}:${toString cfg.port}/rpc";
+            namespace = n;
+            name = "todo";
+            username = "todo";
+            password = "todo";
+          };
+        };
       in {
-        "${prettyN}-site" = {...}: {
+        "${safeN}-site" = {...}: {
           description = "A website written in go :";
           wantedBy = ["multi-user.target"];
           after = ["network.target"];
           serviceConfig = {
-            ExecStart = let
-              procs = pkgs.writeShellScriptBin "start" ''
-                set -e
-                ${website}/bin/web -root ${website} -logdir ${logdir} -port ${toString v.port}
-              '';
-            in "${procs}/bin/start";
+            ExecStart = "${website}/bin/web -static ${website} -state /var/lib/${safeN} -config ${webconfig}";
             DynamicUser = false;
             User = "webhost";
             Group = "webhost";
+            StateDirectory = n;
+            StateDirectoryMode = "0750";
           };
         };
-        "${prettyN}-goaccess" = {...}: {
+        "${safeN}-goaccess" = lib.mkIf v.goaccess.enable ({...}: {
           description = "an open source real-time web log analyzer";
           wantedBy = ["multi-user.target"];
           after = ["network.target"];
@@ -103,18 +140,21 @@ in {
               accessLog = "/var/log/caddy/access-${n}.log";
               hostDir = "/var/lib/caddy/goaccess/${n}";
               hostFile = "${hostDir}/index.html";
-              wsUrl = if v.disableSSL then "ws://stats.${n}:80" else "wss://stats.${n}:443";
+              wsUrl =
+                if v.disableSSL
+                then "ws://stats.${n}:80"
+                else "wss://stats.${n}:443";
               goaccess = pkgs.writeShellScriptBin "start" ''
                 ${mkdir} -p ${hostDir}
                 ${touch} ${hostFile}
-                ${pkgs.goaccess}/bin/goaccess --log-format caddy -f ${accessLog} -o ${hostFile} --real-time-html --port=${toString v.statsPort} --ws-url=${wsUrl} --anonymize-ip --anonymize-level=3
+                ${pkgs.goaccess}/bin/goaccess --log-format caddy -f ${accessLog} -o ${hostFile} --real-time-html --port=${toString v.goaccess.port} --ws-url=${wsUrl} --anonymize-ip --anonymize-level=3
               '';
             in "${goaccess}/bin/start";
             DynamicUser = false;
             User = "caddy";
             Group = "caddy";
           };
-        };
+        });
       })
       cfg.instances;
   };

@@ -41,6 +41,11 @@
         system = "x86_64-linux";
         pkgs = import nixpkgs {
           system = system;
+          config.allowUnfreePredicate = pkg:
+            builtins.elem (nixpkgs.lib.getName pkg) [
+              "surrealdb"
+            ];
+          #config.allowUnfree = true;
         };
       in
         nixpkgs.lib.nixosSystem {

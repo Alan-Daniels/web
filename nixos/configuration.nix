@@ -51,8 +51,11 @@ in {
     enable = true;
     instances = {
       "localhost" = {
-        port = 8080;
         disableSSL = true;
+        server = {
+          port = 8080;
+        };
+        goaccess.enable = false;
       };
     };
   };

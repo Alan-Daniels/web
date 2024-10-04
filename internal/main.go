@@ -3,13 +3,16 @@ package internal
 import (
 	_ "embed"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/Alan-Daniels/web/internal/config"
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
+	"github.com/surrealdb/surrealdb.go"
 )
 
 //go:embed commit.txt
@@ -18,7 +21,21 @@ var Commit string
 var TimeZoneSydney, _ = time.LoadLocation("Australia/Sydney")
 
 var Logger zerolog.Logger
-var TestTag string
+var Database *surrealdb.DB
+var Config *config.Config
+var RootDir string
+
+func InitLogger() error {
+	logfile, err := os.OpenFile((RootDir)+"/log.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		return err
+	}
+	zerolog.TimestampFieldName = "t"
+	zerolog.LevelFieldName = "l"
+	zerolog.MessageFieldName = "m"
+	Logger = zerolog.New(logfile).With().Timestamp().Logger()
+	return nil
+}
 
 func ComponentHandler(comp func() templ.Component) func(e echo.Context) error {
 	return func(e echo.Context) error {
