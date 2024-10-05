@@ -23,6 +23,17 @@ flake: {
         };
       };
     };
+  rootDatabaseOptions = with lib;
+    types.submodule {
+      options = {
+        username = mkOption {
+          type = types.str;
+        };
+        password = mkOption {
+          type = types.str;
+        };
+      };
+    };
   goaccessOptions = with lib;
     types.submodule {
       options = {
@@ -48,16 +59,7 @@ in {
       enable = mkEnableOption "A website written in go :)";
       database = mkOption {
         description = "database root config";
-        type = types.submodule {
-          options = {
-            username = mkOption {
-              type = types.str;
-            };
-            password = mkOption {
-              type = types.str;
-            };
-          };
-        };
+        type = rootDatabaseOptions;
       };
       instances = mkOption {
         type = with types; attrsOf webOptions;
