@@ -49,11 +49,18 @@ in {
 
   services.website = {
     enable = true;
+    database = {
+      username = "root";
+      password = "root";
+    };
     instances = {
       "localhost" = {
         disableSSL = true;
         server = {
           port = 8080;
+        };
+        database = {
+          password = "testing-testing-hi";
         };
         goaccess.enable = false;
       };

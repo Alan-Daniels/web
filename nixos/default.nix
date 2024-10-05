@@ -18,7 +18,9 @@ flake: {
   databaseOptions = with lib;
     types.submodule {
       options = {
-        # todo
+        password = mkOption {
+          type = types.str;
+        };
       };
     };
   goaccessOptions = with lib;
@@ -44,6 +46,19 @@ in {
   options = {
     services.website = with lib; {
       enable = mkEnableOption "A website written in go :)";
+      database = mkOption {
+        description = "database root config";
+        type = types.submodule {
+          options = {
+            username = mkOption {
+              type = types.str;
+            };
+            password = mkOption {
+              type = types.str;
+            };
+          };
+        };
+      };
       instances = mkOption {
         type = with types; attrsOf webOptions;
       };
@@ -53,10 +68,17 @@ in {
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
       website
+      pkgs.surrealdb
     ];
     services.surrealdb = {
       enable = true;
       port = 7999;
+      extraFlags = [
+        "-A" # enable all features
+        "-u=${cfg.database.username}"
+        "-p=${cfg.database.password}"
+        "-l=full"
+      ];
     };
     users.users.webhost = {
       isSystemUser = true;
@@ -98,6 +120,7 @@ in {
     systemd.services =
       lib.attrsets.concatMapAttrs (n: v: let
         safeN = lib.replaceStrings ["."] ["-"] n;
+        dbname = "web";
         webconfig = (pkgs.formats.yaml {}).generate "config.yml" {
           server = {
             port = v.server.port;
@@ -108,16 +131,45 @@ in {
               cfg = config.services.surrealdb;
             in "ws://${cfg.host}:${toString cfg.port}/rpc";
             namespace = n;
-            name = "todo";
-            username = "todo";
-            password = "todo";
+            name = dbname;
+            username = safeN;
           };
         };
       in {
+        "${safeN}-prep-db" = {...}: {
+          description = "Setup database credentials";
+          wantedBy = ["multi-user.target"];
+          after = ["network.target" "surrealdb.service"];
+          serviceConfig = {
+            ExecStartPre = "${pkgs.coreutils-full}/bin/sleep 2"; # last-ditch effort to get db connecting first try
+            ExecStart = let
+              surreal = let
+                cfgdb = config.services.surrealdb;
+              in "${pkgs.surrealdb}/bin/surreal sql -e http://${cfgdb.host}:${toString cfgdb.port} -u ${cfg.database.username} -p ${cfg.database.password}";
+              sql = ''
+                DEFINE NAMESPACE IF NOT EXISTS ${n};
+                USE NAMESPACE ${n};
+                DEFINE DATABASE IF NOT EXISTS ${dbname};
+                USE DATABASE ${n};
+                DEFINE USER OVERWRITE ${safeN} ON NAMESPACE PASSWORD \"''${DB_PASSWORD}\" ROLES EDITOR;
+              '';
+              # verify with `echo "use ns localhost;use db localhost;info for ns;" | surreal sql -e ws://127.0.0.1:7999 -u root -p root`
+              start = pkgs.writeShellScriptBin "start" ''
+                echo "${sql}" | ${surreal}
+              '';
+            in "${start}/bin/start";
+            DynamicUser = true;
+            Type = "oneshot";
+            Restart = "no";
+          };
+          environment = {
+            DB_PASSWORD = v.database.password;
+          };
+        };
         "${safeN}-site" = {...}: {
           description = "A website written in go :";
           wantedBy = ["multi-user.target"];
-          after = ["network.target"];
+          after = ["network.target" "${safeN}-prep-db.service"];
           serviceConfig = {
             ExecStart = "${website}/bin/web -static ${website} -state /var/lib/${safeN} -config ${webconfig}";
             DynamicUser = false;
@@ -125,6 +177,9 @@ in {
             Group = "webhost";
             StateDirectory = n;
             StateDirectoryMode = "0750";
+          };
+          environment = {
+            DB_PASSWORD = v.database.password;
           };
         };
         "${safeN}-goaccess" = lib.mkIf v.goaccess.enable ({...}: {

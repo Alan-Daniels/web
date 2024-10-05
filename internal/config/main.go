@@ -26,9 +26,9 @@ func Init(file string) (*Config, error) {
 	if err := fileInit(cfg, file); err != nil {
 		return nil, err
 	}
-	//if err := envInit(cfg); err != nil {
-	//	return nil, err
-	//}
+	if err := envInit(cfg); err != nil {
+		return nil, err
+	}
 
 	return cfg, nil
 }

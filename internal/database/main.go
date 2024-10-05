@@ -11,18 +11,11 @@ func Init(Config *config.Config) (*surrealdb.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	type auth struct {
-		Database  string
-		Namespace string
-		Username  string
-		Password  string
-	}
 
-	authData := &auth{
-		Database:  Config.Database.Name,
-		Namespace: Config.Database.Namespace,
-		Username:  Config.Database.Username,
-		Password:  Config.Database.Password,
+	authData := map[string]interface{}{
+		"NS": Config.Database.Namespace,
+		"user":  Config.Database.Username,
+		"pass":  Config.Database.Password,
 	}
 	if _, err = db.Signin(authData); err != nil {
 		return nil, err
