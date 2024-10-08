@@ -7,12 +7,12 @@ import (
 	"time"
 
 	"github.com/Alan-Daniels/web/internal/config"
+	"github.com/Alan-Daniels/web/internal/database"
 	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
-	"github.com/surrealdb/surrealdb.go"
 )
 
 //go:embed commit.txt
@@ -21,7 +21,7 @@ var Commit string
 var TimeZoneSydney, _ = time.LoadLocation("Australia/Sydney")
 
 var Logger zerolog.Logger
-var Database *surrealdb.DB
+var Database *database.DB
 var Config *config.Config
 var RootDir string
 

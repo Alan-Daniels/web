@@ -79,7 +79,6 @@ in {
         "-A" # enable all features
         "-u=${cfg.database.username}"
         "-p=${cfg.database.password}"
-        "-l=full"
       ];
     };
     users.users.webhost = {
@@ -123,7 +122,7 @@ in {
       lib.attrsets.concatMapAttrs (n: v: let
         safeN = lib.replaceStrings ["."] ["-"] n;
         dbname = "web";
-        webconfig = (pkgs.formats.yaml {}).generate "config.yml" {
+        webconfig = (pkgs.formats.yaml {}).generate "${safeN}-webconf.yml" {
           server = {
             port = v.server.port;
             hostname = n;
@@ -152,7 +151,7 @@ in {
                 DEFINE NAMESPACE IF NOT EXISTS ${n};
                 USE NAMESPACE ${n};
                 DEFINE DATABASE IF NOT EXISTS ${dbname};
-                USE DATABASE ${n};
+                USE DATABASE ${dbname};
                 DEFINE USER OVERWRITE ${safeN} ON NAMESPACE PASSWORD \"''${DB_PASSWORD}\" ROLES EDITOR;
               '';
               # verify with `echo "use ns localhost;use db localhost;info for ns;" | surreal sql -e ws://127.0.0.1:7999 -u root -p root`

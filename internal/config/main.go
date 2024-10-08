@@ -36,10 +36,9 @@ func Init(file string) (*Config, error) {
 func fileInit(cfg *Config, file string) error {
 	f, err := os.Open(file)
 	if err != nil {
-		return err
+		return nil
 	}
 	defer f.Close()
-
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(cfg)
 	if err != nil {

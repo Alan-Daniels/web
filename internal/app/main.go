@@ -6,6 +6,7 @@ import (
 	"time"
 
 	. "github.com/Alan-Daniels/web/internal"
+	"github.com/Alan-Daniels/web/internal/admin"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -29,6 +30,13 @@ func Init() error {
 	//for _, post := range blog.BlogPosts {
 	//	appblog.GET(fmt.Sprintf("/%s", post.SafeName), post.Handler())
 	//}
+
+	//TODO: make this work?
+	//var r = Root{e: app}
+	//r.Init()
+
+	adm := app.Group("/admin")
+	admin.Init(adm)
 
 	app.Use(middleware.Gzip())
 	app.Use(middleware.Secure())

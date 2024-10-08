@@ -1,4 +1,8 @@
-flake: {pkgs, ...}: let
+flake: {
+  pkgs,
+  config,
+  ...
+}: let
 in {
   imports = [
     ./hardware-configuration.nix
@@ -11,7 +15,7 @@ in {
   in {
     # following configuration is added only when building VM with build-vm
     virtualisation = {
-      memorySize = 512; # Use 0.5GB memory.
+      memorySize = 2048;
       cores = 1;
       diskImage = null; # don't save anything between boots
       forwardPorts = [
@@ -60,7 +64,7 @@ in {
           port = 8080;
         };
         database = {
-          password = "testing-testing-hi";
+          password = "dev-database-pass";
         };
         goaccess.enable = false;
       };

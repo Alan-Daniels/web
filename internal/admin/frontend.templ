@@ -1,6 +1,9 @@
-package internal
+package admin
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 var Mauve = "#cba6f7"
 var Text = "#cdd6f4"
@@ -20,7 +23,7 @@ templ Page() {
 		<head>
 			<meta charset="UTF-8"/>
 			<title>Alan Daniels</title>
-			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + Commit }/>
+			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + "indev" }/>
 			<!-- <script src="https://unpkg.com/htmx.org@1.9.11"></script> -->
 		</head>
 		<body class="bg-dark">
@@ -122,4 +125,12 @@ templ NamedLI(name string) {
 		<br/>
 		{ children... }
 	</li>
+}
+
+templ Playground(query string, result interface{}) {
+	<code>{ fmt.Sprintf("%v", result) }</code>
+	<form action="" method="post">
+		<textarea name="query" id="query" cols="30" rows="10">{ query }</textarea>
+		<input type="submit"/>
+	</form>
 }

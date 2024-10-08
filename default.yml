@@ -1,0 +1,9 @@
+database:
+  name: web
+  namespace: localhost
+  uri: ws://127.0.0.1:7999/rpc
+  username: localhost
+  password: dev-database-pass
+server:
+  hostname: localhost
+  port: 8081
