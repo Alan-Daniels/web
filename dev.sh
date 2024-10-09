@@ -19,6 +19,7 @@ export CGO_ENABLED=0
 
 mkdir -p ./tmp/db
 
+npx tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify
 (trap 'kill 0' SIGINT; 
 templ generate --watch &
 npx tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify --watch &
