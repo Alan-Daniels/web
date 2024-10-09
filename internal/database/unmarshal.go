@@ -7,12 +7,6 @@ import (
 
 type Map map[string]interface{}
 
-type response[T any] struct {
-	Result T      `json:"result"`
-	Status string `json:"status"`
-	Time   string `json:"time"`
-}
-
 type RawResponse Map
 
 func toMapArr(data interface{}) []Map {

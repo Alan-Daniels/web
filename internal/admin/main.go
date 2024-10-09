@@ -46,7 +46,6 @@ func admin(c echo.Context) error {
 		// this isnt required, just nice for displaying
 		(*allnodes)[k].ID = v.GetID()
 	}
-	//allnodes, err := Database.Pages("")
 	if err != nil {
 		Logger.Error().Err(err).Msg("tried getting Root branches (classic mistake)")
 		return err

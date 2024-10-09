@@ -23,17 +23,6 @@ func Init() error {
 	app.Static("/assets", (RootDir)+"/assets")
 	app.File("/favicon.ico", (RootDir)+"/assets/favicon.ico")
 
-	//app.GET("/", ComponentHandler(pages.Home))
-	//app.GET("/now", ComponentHandler(pages.Now))
-	//app.GET("/about", ComponentHandler(pages.About))
-
-	//appblog := app.Group("/blog")
-	//appblog.GET("", data.IndexHandler(blog.BlogPosts))
-	//for _, post := range blog.BlogPosts {
-	//	appblog.GET(fmt.Sprintf("/%s", post.SafeName), post.Handler())
-	//}
-
-	//TODO: make this work?
 	data.Init(app)
 
 	adm := app.Group("/admin")
