@@ -31,6 +31,9 @@ schema = 3
   [mod."github.com/fsnotify/fsnotify"]
     version = "v1.7.0"
     hash = "sha256-MdT2rQyQHspPJcx6n9ozkLbsktIOJutOqDuKpNAtoZY="
+  [mod."github.com/fxamacker/cbor/v2"]
+    version = "v2.7.0"
+    hash = "sha256-ln5ms4UxxQ563bZ2UaNLG/bNsmohlgK18K+UUOyZNA0="
   [mod."github.com/golang-jwt/jwt"]
     version = "v3.2.2+incompatible"
     hash = "sha256-LOkpuXhWrFayvVf1GOaOmZI5YKEsgqVSb22aF8LnCEM="
@@ -77,14 +80,17 @@ schema = 3
     version = "v0.4.0"
     hash = "sha256-4pWI9eTZRRDP9kO8rG6vbLCtBVVRLtbCJKd0Z2+8JoU="
   [mod."github.com/surrealdb/surrealdb.go"]
-    version = "v0.2.1"
-    hash = "sha256-8+tbBbtNq0VE8uMSTY0rPhNB1HkEpEKRYSnv6JKef0E="
+    version = "v0.2.2-0.20240923142710-3d48437c7f05"
+    hash = "sha256-j1/i5H1inU4WzWgwVK9PfXGy4GNAGe6AGtkUyzEl7pU="
   [mod."github.com/valyala/bytebufferpool"]
     version = "v1.0.0"
     hash = "sha256-I9FPZ3kCNRB+o0dpMwBnwZ35Fj9+ThvITn8a3Jr8mAY="
   [mod."github.com/valyala/fasttemplate"]
     version = "v1.2.2"
     hash = "sha256-gp+lNXE8zjO+qJDM/YbS6V43HFsYP6PKn4ux1qa5lZ0="
+  [mod."github.com/x448/float16"]
+    version = "v0.8.4"
+    hash = "sha256-VKzMTMS9pIB/cwe17xPftCSK9Mf4Y6EuBEJlB4by5mE="
   [mod."go.lsp.dev/jsonrpc2"]
     version = "v0.10.0"
     hash = "sha256-RbRsMYVBLR7ZDHHGMooycrkdbIauMXkQjVOGP7ggSgM="

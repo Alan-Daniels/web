@@ -130,7 +130,7 @@ in {
           database = {
             uri = let
               cfg = config.services.surrealdb;
-            in "ws://${cfg.host}:${toString cfg.port}/rpc";
+            in "ws://${cfg.host}:${toString cfg.port}";
             namespace = n;
             name = dbname;
             username = safeN;

@@ -3,13 +3,12 @@ package database
 import (
 	"github.com/Alan-Daniels/web/internal/config"
 	"github.com/surrealdb/surrealdb.go"
+	"github.com/surrealdb/surrealdb.go/pkg/models"
 )
 
 type DB struct {
 	db *surrealdb.DB
 }
-
-type Map map[string]interface{}
 
 func Init(Config *config.Config) (*DB, error) {
 	db, err := surrealdb.New(Config.Database.Uri)
@@ -17,12 +16,12 @@ func Init(Config *config.Config) (*DB, error) {
 		return nil, err
 	}
 
-	authData := map[string]interface{}{
-		"NS":   Config.Database.Namespace,
-		"user": Config.Database.Username,
-		"pass": Config.Database.Password,
+	authData := models.Auth{
+		Namespace: Config.Database.Namespace,
+		Username:  Config.Database.Username,
+		Password:  Config.Database.Password,
 	}
-	if _, err = db.Signin(authData); err != nil {
+	if _, err = db.Signin(&authData); err != nil {
 		return nil, err
 	}
 	Config.Database.Username = ""
@@ -34,15 +33,30 @@ func Init(Config *config.Config) (*DB, error) {
 	return &DB{db: db}, nil
 }
 
-func (db *DB) RootBranches() (interface{}, error) {
-	return db.db.Query("SELECT * FROM Branch WHERE parent IS NULL", Map{})
-}
-func (db *DB) Branches(parent string) (interface{}, error) {
-	return db.db.Query("SELECT * FROM Branch WHERE (parent=$parent)", Map{
+func (db *DB) Branches(parent string) (RawResponse, error) {
+	resps, err := db.Query("SELECT * FROM Group WHERE (parent=$parent)", Map{
 		"parent": parent,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return resps[0], nil
 }
 
-func (db *DB) Query(sql string, vars interface{}) (interface{}, error) {
-	return db.db.Query(sql, vars)
+func (db *DB) Pages(branch string) (RawResponse, error) {
+	resps, err := db.Query("SELECT * FROM Page WHERE (parent=$branch)", Map{
+		"branch": branch,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resps[0], nil
+}
+
+func (db *DB) Insert(table string, item interface{}) ([]RawResponse, error) {
+	return toRawResponses(db.db.Insert(table, item))
+}
+
+func (db *DB) Query(sql string, vars interface{}) ([]RawResponse, error) {
+	return toRawResponses(db.db.Query(sql, vars))
 }

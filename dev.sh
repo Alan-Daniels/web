@@ -22,7 +22,7 @@ mkdir -p ./tmp/db
 (trap 'kill 0' SIGINT; 
 templ generate --watch &
 npx tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify --watch &
-surreal start --bind 127.0.0.1:7999 -A -u root -p root "file://${DEVPWD}/tmp/db/" &
+surreal start --bind 127.0.0.1:7999 -A --log debug -u root -p root "file://${DEVPWD}/tmp/db/" &
 setupdb &
 doair
 )

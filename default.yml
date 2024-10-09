@@ -1,7 +1,7 @@
 database:
   name: web
   namespace: localhost
-  uri: ws://127.0.0.1:7999/rpc
+  uri: ws://127.0.0.1:7999
   username: localhost
   password: dev-database-pass
 server:

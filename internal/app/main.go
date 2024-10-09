@@ -7,6 +7,8 @@ import (
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/admin"
+	"github.com/Alan-Daniels/web/internal/data"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -32,8 +34,7 @@ func Init() error {
 	//}
 
 	//TODO: make this work?
-	//var r = Root{e: app}
-	//r.Init()
+	data.Init(app)
 
 	adm := app.Group("/admin")
 	admin.Init(adm)
