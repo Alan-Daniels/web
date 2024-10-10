@@ -3,5 +3,6 @@
 /tmp
 *.txt
 *_templ.go
+*_templ_sourcemap.html
 styles.css
 log.log

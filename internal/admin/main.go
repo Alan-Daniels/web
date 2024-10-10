@@ -17,6 +17,22 @@ func Init(g *echo.Group) {
 	g.POST("/pl", playgroundPost)
 
 	g.GET("/mkpage", mkpage)
+
+	g.GET("/test", test)
+}
+
+func test(c echo.Context) error {
+	content := new(data.Content)
+	content.BlockName = "blocks.blockTest"
+	content.BlockOps = make(map[string]interface{})
+	content.BlockOps["name"] = "WORLD"
+
+	component, err := content.ToComponent()
+	if err != nil {
+		return err
+	}
+
+	return Render(c, http.StatusOK, component)
 }
 
 func mkpage(c echo.Context) error {
@@ -103,6 +119,5 @@ func playgroundPost(c echo.Context) error {
 }
 
 func playground(c echo.Context) error {
-	Render(c, http.StatusOK, Playground("", ""))
-	return nil
+	return Render(c, http.StatusOK, Playground("", ""))
 }

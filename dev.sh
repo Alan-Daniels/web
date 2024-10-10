@@ -21,7 +21,7 @@ mkdir -p ./tmp/db
 
 npx tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify
 (trap 'kill 0' SIGINT; 
-templ generate --watch &
+templ generate -source-map-visualisations -watch &
 npx tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify --watch &
 surreal start --bind 127.0.0.1:7999 -A --log debug -u root -p root "file://${DEVPWD}/tmp/db/" &
 setupdb &

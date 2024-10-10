@@ -1,11 +1,11 @@
 package blocks
 
-templ blockTest(args blockArgsTest) {
-	<p>Hello { args.name }!</p>
+templ blockTest(args BlockArgsTest) {
+	<p>Hello { args.Name }!</p>
 }
 
-type blockArgsTest struct {
-	name string
+type BlockArgsTest struct {
+	Name string `json:"name"`
 }
 
 func init() {

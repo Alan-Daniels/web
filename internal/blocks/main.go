@@ -1,19 +1,18 @@
 package blocks
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"reflect"
 	"runtime"
 	"strings"
 
 	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
 )
 
 type Block interface {
-	Render(map[string]interface{}, context.Context, io.Writer) error
+	Component(map[string]interface{}) (templ.Component, error)
 }
 type Blocks map[string]Block
 
@@ -21,12 +20,12 @@ type _Block[T any] struct {
 	comp func(T) templ.Component
 }
 
-func (bl *_Block[T]) Render(args map[string]interface{}, ctx context.Context, w io.Writer) error {
+func (bl *_Block[T]) Component(args map[string]interface{}) (templ.Component, error) {
 	t, err := bl.unmarshal(args)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return bl.comp(*t).Render(ctx, w)
+	return bl.comp(*t), nil
 }
 
 func (bl *_Block[T]) unmarshal(args map[string]interface{}) (*T, error) {
@@ -65,4 +64,52 @@ func registerBlock[T any](comp func(T) templ.Component) {
 		blocks = make(Blocks)
 	}
 	blocks[name] = block
+}
+
+func Merge(parent templ.Component, children []templ.Component) templ.Component {
+	child := templruntime.GeneratedTemplate(func(input templruntime.GeneratedComponentInput) (retErr error) {
+		writer, ctx := input.Writer, input.Context
+		if ctxerr := ctx.Err(); ctxerr != nil {
+			return ctxerr
+		}
+		buffer, existing := templruntime.GetBuffer(writer)
+		if !existing {
+			defer func() {
+				err := templruntime.ReleaseBuffer(buffer)
+				if retErr == nil {
+					retErr = err
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		for i := range children {
+			retErr = (children[i]).Render(ctx, buffer)
+			if retErr != nil {
+				return retErr
+			}
+		}
+		return retErr
+	})
+	return templruntime.GeneratedTemplate(func(input templruntime.GeneratedComponentInput) (retErr error) {
+		writer, ctx := input.Writer, input.Context
+		if ctxerr := ctx.Err(); ctxerr != nil {
+			return ctxerr
+		}
+		buffer, existing := templruntime.GetBuffer(writer)
+		if !existing {
+			defer func() {
+				err := templruntime.ReleaseBuffer(buffer)
+				if retErr == nil {
+					retErr = err
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		ctx = templ.ClearChildren(ctx)
+		retErr = parent.Render(templ.WithChildren(ctx, child), buffer)
+		if retErr != nil {
+			return retErr
+		}
+		return retErr
+	})
 }

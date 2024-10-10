@@ -128,8 +128,9 @@ templ NamedLI(name string) {
 }
 
 templ Playground(query string, result interface{}) {
+	<iframe src="/admin" name="query_result" frameborder="0"></iframe>
 	<code>{ fmt.Sprintf("%v", result) }</code>
-	<form action="" method="post">
+	<form action="/admin/pl" method="post" target="query_result">
 		<textarea name="query" id="query" cols="30" rows="10">{ query }</textarea>
 		<input type="submit"/>
 	</form>
