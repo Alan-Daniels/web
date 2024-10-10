@@ -70,7 +70,7 @@ type Post struct {
 }
 
 type RecordID struct {
-	ID interface{} `json:"id"`
+	ID interface{} `json:"id,omitempty"`
 }
 
 func (r *RecordID) GetID() string {

@@ -57,7 +57,7 @@ func toRawResponses(data interface{}, err error) ([]RawResponse, error) {
 	return responses, nil
 }
 
-func Unmarshal[T any](response RawResponse, err error) (*T, error) {
+func Unmarshal[T any](response any, err error) (*T, error) {
 	Resp := new(T)
 
 	if err != nil {
@@ -65,7 +65,7 @@ func Unmarshal[T any](response RawResponse, err error) (*T, error) {
 	}
 
 	var jsonBytes []byte
-	jsonBytes, err = json.Marshal(response["result"])
+	jsonBytes, err = json.Marshal(response)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to deserialise response '%+v' to object: %w", response, err)
@@ -78,4 +78,8 @@ func Unmarshal[T any](response RawResponse, err error) (*T, error) {
 	}
 
 	return Resp, nil
+}
+
+func UnmarshalResponse[T any](response RawResponse, err error) (*T, error) {
+	return Unmarshal[T](response["result"], err)
 }

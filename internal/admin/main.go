@@ -20,28 +20,61 @@ func Init(g *echo.Group) {
 }
 
 func mkpage(c echo.Context) error {
-	Database.Query("Delete Page;", database.Map{})
+	Database.Query("DELETE Page;DELETE Group;", database.Map{})
+	outs := make([]interface{}, 3)
 
 	page := new(data.Page)
 	page.ID = "Page:root"
+	// no parent
 	page.Method = "GET"
 	page.Path = ""
 	page.Name = "Root"
 	page.Content.BlockName = "some block name :)"
 	page.Content.BlockOps = nil
-
-	res, err := Database.Insert("Page", page)
+	page, err := database.Unmarshal[data.Page](Database.Insert("Page", page))
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
+		outs[0] = err.Error()
+	} else {
+		page.ID = page.GetID()
+		outs[0] = page
 	}
 
-	pretty, err := json.Marshal(res)
+	group := new(data.Group)
+	group.Prefix = "/test"
+	group, err = database.Unmarshal[data.Group](Database.Insert("Group", group))
+	if err != nil {
+		Logger.Error().Err(err).Msg("Error in the playground")
+		outs[1] = err.Error()
+	} else {
+		group.ID = group.GetID()
+		outs[1] = group
+	}
+
+	page = new(data.Page)
+	page.ID = nil
+	page.Parent = group.GetID()
+	page.Method = "GET"
+	page.Path = "/test"
+	page.Name = "Root"
+	page.Content.BlockName = ":)))))"
+	page.Content.BlockOps = nil
+	page, err = database.Unmarshal[data.Page](Database.Insert("Page", page))
+	if err != nil {
+		Logger.Error().Err(err).Msg("Error in the playground")
+		outs[2] = err.Error()
+	} else {
+		page.ID = page.GetID()
+		outs[2] = page
+	}
+
+	pretty, err := json.Marshal(outs)
 	c.JSONBlob(http.StatusOK, pretty)
 	return nil
 }
 
 func admin(c echo.Context) error {
-	allnodes, err := database.Unmarshal[[]data.Page](Database.Pages(""))
+	allnodes, err := database.UnmarshalResponse[[]data.Page](Database.Pages(""))
 	for k, v := range *allnodes {
 		// this isnt required, just nice for displaying
 		(*allnodes)[k].ID = v.GetID()
@@ -64,13 +97,8 @@ func playgroundPost(c echo.Context) error {
 	}
 
 	pretty, err := json.Marshal(res)
-	if err != nil {
-		Logger.Error().Err(err).Msg("Error in the playground")
-		Render(c, http.StatusOK, Playground(query, res))
-		return nil
-	}
 
-	Render(c, http.StatusOK, Playground(query, string(pretty)))
+	c.JSONBlob(http.StatusOK, pretty)
 	return nil
 }
 

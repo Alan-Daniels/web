@@ -34,7 +34,7 @@ func Init(Config *config.Config) (*DB, error) {
 }
 
 func (db *DB) Branches(parent string) (RawResponse, error) {
-	resps, err := db.Query("SELECT * FROM Group WHERE (parent=$parent)", Map{
+	resps, err := db.Query("SELECT * FROM Group WHERE parent = $parent", Map{
 		"parent": parent,
 	})
 	if err != nil {
@@ -43,9 +43,9 @@ func (db *DB) Branches(parent string) (RawResponse, error) {
 	return resps[0], nil
 }
 
-func (db *DB) Pages(branch string) (RawResponse, error) {
-	resps, err := db.Query("SELECT * FROM Page WHERE (parent=$branch)", Map{
-		"branch": branch,
+func (db *DB) Pages(parent string) (RawResponse, error) {
+	resps, err := db.Query("SELECT * FROM Page WHERE parent = $parent", Map{
+		"parent": parent,
 	})
 	if err != nil {
 		return nil, err
@@ -53,8 +53,12 @@ func (db *DB) Pages(branch string) (RawResponse, error) {
 	return resps[0], nil
 }
 
-func (db *DB) Insert(table string, item interface{}) ([]RawResponse, error) {
-	return toRawResponses(db.db.Insert(table, item))
+func (db *DB) Insert(table string, item interface{}) (RawResponse, error) {
+	resps, err := toRawResponses(db.db.Insert(table, item))
+	if err != nil {
+		return nil, err
+	}
+	return resps[0], nil
 }
 
 func (db *DB) Query(sql string, vars interface{}) ([]RawResponse, error) {

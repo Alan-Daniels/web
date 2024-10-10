@@ -15,7 +15,7 @@ func (e *Root) Add(method string, path string, handler echo.HandlerFunc, middlew
 }
 
 func (e *Root) Init(_ Branch) error {
-	pages, err := database.Unmarshal[[]Page](Database.Pages(""))
+	pages, err := database.UnmarshalResponse[[]Page](Database.Pages(""))
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to get root pages")
 	}
@@ -24,7 +24,7 @@ func (e *Root) Init(_ Branch) error {
 		page.Init(e)
 	}
 
-	branches, err := database.Unmarshal[[]Group](Database.Branches(""))
+	branches, err := database.UnmarshalResponse[[]Group](Database.Branches(""))
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to get root branches")
 	}
@@ -45,11 +45,21 @@ func (e *Group) Add(method string, path string, handler echo.HandlerFunc, middle
 
 func (e *Group) Init(p Branch) error {
 	e.g = p.Group(e.Prefix)
-	branches, err := database.Unmarshal[[]Group](Database.Branches(e.Parent))
+
+	pages, err := database.UnmarshalResponse[[]Page](Database.Pages(e.GetID()))
 	if err != nil {
-		Logger.Error().Err(err).Msg("failed to get root branches")
+		Logger.Error().Err(err).Msg("failed to get group pages")
 	}
-	Logger.Debug().Any("branches", branches).Msg("got these root branches")
+	Logger.Debug().Any("pages", pages).Msg("got these group pages")
+	for _, page := range *pages {
+		page.Init(e)
+	}
+
+	branches, err := database.UnmarshalResponse[[]Group](Database.Branches(e.GetID()))
+	if err != nil {
+		Logger.Error().Err(err).Msg("failed to get group branches")
+	}
+	Logger.Debug().Any("branches", branches).Msg("got these group branches")
 	for _, branch := range *branches {
 		branch.Init(e)
 	}
