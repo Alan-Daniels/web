@@ -7,6 +7,7 @@ import (
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/app"
+	"github.com/Alan-Daniels/web/internal/blocks"
 	"github.com/Alan-Daniels/web/internal/config"
 	"github.com/Alan-Daniels/web/internal/database"
 )
@@ -22,6 +23,8 @@ func main() {
 	if err := InitLogger(); err != nil {
 		panic(errors.Join(errors.New("Cannot start without the logger: "), err))
 	}
+	Blocks = blocks.Init()
+	Logger.Debug().Any("blocks", Blocks).Msg("starting with these blocks")
 	if config, err := config.Init(*configFile); err != nil {
 		Logger.Fatal().Err(err).Str("file", *configFile).Msg("Failed to read configs")
 	} else {

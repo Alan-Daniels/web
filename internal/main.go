@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Alan-Daniels/web/internal/blocks"
 	"github.com/Alan-Daniels/web/internal/config"
 	"github.com/Alan-Daniels/web/internal/database"
 	"github.com/a-h/templ"
@@ -24,6 +25,7 @@ var Logger zerolog.Logger
 var Database *database.DB
 var Config *config.Config
 var RootDir string
+var Blocks *blocks.Blocks
 
 func InitLogger() error {
 	logfile, err := os.OpenFile((RootDir)+"/log.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)

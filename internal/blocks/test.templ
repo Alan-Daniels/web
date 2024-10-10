@@ -1,0 +1,13 @@
+package blocks
+
+templ blockTest(args blockArgsTest) {
+	<p>Hello { args.name }!</p>
+}
+
+type blockArgsTest struct {
+	name string
+}
+
+func init() {
+	registerBlock(blockTest)
+}
