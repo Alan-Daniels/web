@@ -19,7 +19,6 @@ func (e *Root) Init(_ Branch) error {
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to get root pages")
 	}
-	Logger.Debug().Any("pages", pages).Msg("got these root pages")
 	for _, page := range *pages {
 		page.Init(e)
 	}
@@ -28,7 +27,6 @@ func (e *Root) Init(_ Branch) error {
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to get root branches")
 	}
-	Logger.Debug().Any("branches", branches).Msg("got these root branches")
 	for _, branch := range *branches {
 		branch.Init(e)
 	}
@@ -50,7 +48,6 @@ func (e *Group) Init(p Branch) error {
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to get group pages")
 	}
-	Logger.Debug().Any("pages", pages).Msg("got these group pages")
 	for _, page := range *pages {
 		page.Init(e)
 	}
@@ -59,7 +56,6 @@ func (e *Group) Init(p Branch) error {
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to get group branches")
 	}
-	Logger.Debug().Any("branches", branches).Msg("got these group branches")
 	for _, branch := range *branches {
 		branch.Init(e)
 	}

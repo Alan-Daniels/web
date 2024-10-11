@@ -68,7 +68,6 @@ func InitSession(c echo.Context) (*sessions.Session, error) {
 		return sess, err
 	}
 	if sess.IsNew {
-		Logger.Debug().Msg("New session!!!")
 		sess.Options = &sessions.Options{
 			Path:     "/",
 			MaxAge:   86400 * 7,

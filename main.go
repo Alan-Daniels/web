@@ -24,18 +24,15 @@ func main() {
 		panic(errors.Join(errors.New("Cannot start without the logger: "), err))
 	}
 	Blocks = blocks.Init()
-	Logger.Debug().Any("blocks", Blocks).Msg("starting with these blocks")
 	if config, err := config.Init(*configFile); err != nil {
 		Logger.Fatal().Err(err).Str("file", *configFile).Msg("Failed to read configs")
 	} else {
 		Config = config
-		Logger.Debug().Any("cfg", config).Msg("starting with config")
 	}
 	if db, err := database.Init(Config); err != nil {
 		Logger.Fatal().Err(err).Msg("Failed to init the database")
 	} else {
 		Database = db
-		Logger.Debug().Msg("connected to database")
 	}
 
 	if _, err := os.Stat(RootDir + "init.md"); errors.Is(err, os.ErrNotExist) {

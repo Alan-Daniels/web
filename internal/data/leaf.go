@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"net/http"
 
 	. "github.com/Alan-Daniels/web/internal"
@@ -9,17 +8,17 @@ import (
 )
 
 func (r *Page) Init(p Branch) error {
-	p.Add(r.Method, r.Path, r.Handler())
+	comp, err := r.Content.ToComponent(0)
+	if err != nil {
+		Logger.Error().Err(err).Any("page", *r).Msg("Can't register endpoint!")
+		return err
+	}
+	p.Add(r.Method, r.Path, func(c echo.Context) error {
+		return Render(c, http.StatusOK, comp)
+	})
 	return nil
 }
 
-func (r *Page) Handler() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		Logger.Debug().Any("route", r).Msg("starting handler for page!")
-		c.HTML(http.StatusOK, fmt.Sprintf("this is a page! %v", r))
-		return nil
-	}
-}
 func (r *WildcardRoute) Init(p Branch) error {
 	return nil
 }
