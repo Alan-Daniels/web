@@ -10,6 +10,10 @@ type Branch interface {
 	Init(parent Branch) error
 }
 
+type _branch struct {
+	RecordID
+}
+
 type Leaf interface {
 	Init(parent Branch) error
 }
@@ -17,7 +21,7 @@ type Leaf interface {
 // --
 
 type Group struct {
-	RecordID
+	_branch
 	Parent string      `json:"parent"`
 	Prefix string      `json:"prefix"`
 	g      *echo.Group `json:"-"`
@@ -29,6 +33,7 @@ func Init(e *echo.Echo) {
 }
 
 type Root struct {
+	_branch
 	e *echo.Echo
 }
 

@@ -7,6 +7,7 @@ import (
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/data"
 	"github.com/Alan-Daniels/web/internal/database"
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 )
 
@@ -121,18 +122,11 @@ func mkpage(c echo.Context) error {
 }
 
 func admin(c echo.Context) error {
-	allnodes, err := database.UnmarshalResponse[[]data.Page](Database.Pages(""))
-	for k, v := range *allnodes {
-		// this isnt required, just nice for displaying
-		(*allnodes)[k].ID = v.GetID()
-	}
-	if err != nil {
-		Logger.Error().Err(err).Msg("tried getting Root branches (classic mistake)")
-		return err
-	}
-	pretty, err := json.Marshal(allnodes)
-	c.JSONBlob(http.StatusOK, pretty)
-	return nil
+	rt := new(RouteTree)
+	rt.ID = ""
+	BuildRouteTree(rt)
+
+	return Render(c, http.StatusOK, ShowRoutes(rt))
 }
 
 func playgroundPost(c echo.Context) error {
@@ -151,4 +145,9 @@ func playgroundPost(c echo.Context) error {
 
 func playground(c echo.Context) error {
 	return Render(c, http.StatusOK, Playground("", ""))
+}
+
+func ContentComponent(c data.Content) templ.Component {
+	comp, _ := c.ToComponent(0)
+	return comp
 }

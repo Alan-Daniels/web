@@ -25,7 +25,7 @@ var Logger zerolog.Logger
 var Database *database.DB
 var Config *config.Config
 var RootDir string
-var Blocks *blocks.Blocks
+var Blocks blocks.Blocks
 
 func InitLogger() error {
 	logfile, err := os.OpenFile((RootDir)+"/log.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
@@ -56,6 +56,7 @@ func Render(ctx echo.Context, statusCode int, t templ.Component) error {
 	defer templ.ReleaseBuffer(buf)
 
 	if err := t.Render(ctx.Request().Context(), buf); err != nil {
+		Logger.Error().Err(err).Msg("Rendering component fails!")
 		return err
 	}
 

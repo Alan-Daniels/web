@@ -42,7 +42,12 @@ func Init() error {
 	})))
 
 	// recover from panics
-	app.Use(middleware.Recover())
+	app.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		LogErrorFunc: func(c echo.Context, err error, stack []byte) error{
+			Logger.Error().Stack().Err(err).Msg("Encountered a PANIC while serving an endpoint")
+			return err
+		},
+	}))
 
 	app.Use(middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
 		RedirectCode: http.StatusMovedPermanently,

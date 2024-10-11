@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"github.com/Alan-Daniels/web/internal/data"
 	"strings"
 )
 
@@ -134,4 +135,43 @@ templ Playground(query string, result interface{}) {
 		<textarea name="query" id="query" cols="30" rows="10">{ query }</textarea>
 		<input type="submit"/>
 	</form>
+}
+
+css cssRoute() {
+	background-color: #0095A511;
+}
+
+css cssPage() {
+	background-color: #9500A511;
+}
+
+templ ShowPage(pg *data.Page) {
+	<div class={ cssPage() }>
+		<h4>id: { pg.GetID() }</h4>
+		<p>route: { pg.Method } ".{ pg.Path }"</p>
+		<p>name: { pg.Name }</p>
+		<div>
+			<p>content: </p>
+			@ContentComponent(pg.Content)
+		</div>
+	</div>
+}
+
+templ ShowRoutes(rt *RouteTree) {
+	<div class={ cssRoute() }>
+		<h3>id: { rt.GetID() }</h3>
+		<p>prefix: ".{ rt.Prefix }"</p>
+		<div>
+			<p>pages: </p>
+			for _,item := range rt.PageChildren {
+				@ShowPage(&item)
+			}
+		</div>
+		<div>
+			<p>groups: </p>
+			for _,item := range rt.GroupChildren {
+				@ShowRoutes(&item)
+			}
+		</div>
+	</div>
 }

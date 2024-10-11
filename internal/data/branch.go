@@ -6,6 +6,41 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func (e *_branch) Groups() (groups *[]Group, err error) {
+	groups, err = database.UnmarshalResponse[[]Group](Database.Branches(e.GetID()))
+	if err != nil {
+		Logger.Error().Err(err).Msg("failed to get group branches")
+	}
+
+	return groups, err
+}
+
+func (b *_branch) initPages(e Branch) {
+	pages, err := b.Pages()
+	if err == nil {
+		for _, page := range *pages {
+			page.Init(e)
+		}
+	}
+}
+
+func (b *_branch) initGroups(e Branch) {
+	groups, err := b.Groups()
+	if err == nil {
+		for _, group := range *groups {
+			group.Init(e)
+		}
+	}
+}
+
+func (e *_branch) Pages() (pages *[]Page, err error) {
+	pages, err = database.UnmarshalResponse[[]Page](Database.Pages(e.GetID()))
+	if err != nil {
+		Logger.Error().Err(err).Msg("failed to get group pages")
+	}
+	return pages, err
+}
+
 func (e *Root) Group(prefix string, m ...echo.MiddlewareFunc) (g *echo.Group) {
 	return e.e.Group(prefix, m...)
 }
@@ -15,21 +50,8 @@ func (e *Root) Add(method string, path string, handler echo.HandlerFunc, middlew
 }
 
 func (e *Root) Init(_ Branch) error {
-	pages, err := database.UnmarshalResponse[[]Page](Database.Pages(""))
-	if err != nil {
-		Logger.Error().Err(err).Msg("failed to get root pages")
-	}
-	for _, page := range *pages {
-		page.Init(e)
-	}
-
-	branches, err := database.UnmarshalResponse[[]Group](Database.Branches(""))
-	if err != nil {
-		Logger.Error().Err(err).Msg("failed to get root branches")
-	}
-	for _, branch := range *branches {
-		branch.Init(e)
-	}
+	e.initPages(e)
+	e.initGroups(e)
 	return nil
 }
 
@@ -43,21 +65,7 @@ func (e *Group) Add(method string, path string, handler echo.HandlerFunc, middle
 
 func (e *Group) Init(p Branch) error {
 	e.g = p.Group(e.Prefix)
-
-	pages, err := database.UnmarshalResponse[[]Page](Database.Pages(e.GetID()))
-	if err != nil {
-		Logger.Error().Err(err).Msg("failed to get group pages")
-	}
-	for _, page := range *pages {
-		page.Init(e)
-	}
-
-	branches, err := database.UnmarshalResponse[[]Group](Database.Branches(e.GetID()))
-	if err != nil {
-		Logger.Error().Err(err).Msg("failed to get group branches")
-	}
-	for _, branch := range *branches {
-		branch.Init(e)
-	}
+	e.initPages(e)
+	e.initGroups(e)
 	return nil
 }

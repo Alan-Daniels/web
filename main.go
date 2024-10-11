@@ -23,7 +23,7 @@ func main() {
 	if err := InitLogger(); err != nil {
 		panic(errors.Join(errors.New("Cannot start without the logger: "), err))
 	}
-	Blocks = blocks.Init()
+	Blocks = *blocks.Init()
 	if config, err := config.Init(*configFile); err != nil {
 		Logger.Fatal().Err(err).Str("file", *configFile).Msg("Failed to read configs")
 	} else {
