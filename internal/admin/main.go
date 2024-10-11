@@ -23,12 +23,25 @@ func Init(g *echo.Group) {
 
 func test(c echo.Context) error {
 	content := new(data.Content)
-	content.BlockName = "blocks.blockTest"
+	content.BlockName = "blocks.blockPadd"
 	content.BlockOps = make(map[string]interface{})
-	content.BlockOps["name"] = "WORLD"
+	content.BlockOps["color"] = "red"
+	hello := new(data.Content)
+	hello.BlockName = "blocks.blockTest"
+	hello.BlockOps = make(map[string]interface{})
+	hello.BlockOps["name"] = "WORLD"
+	content.Children = append(content.Children, *hello)
+	chContent := new(data.Content)
+	chContent.BlockName = "blocks.blockPadd"
+	chContent.BlockOps = make(map[string]interface{})
+	chContent.BlockOps["color"] = "green"
+	chContent.Children = append(chContent.Children, *hello)
+	chContent.Children = append(chContent.Children, *hello)
+	content.Children = append(content.Children, *chContent)
 
 	component, err := content.ToComponent()
 	if err != nil {
+		Logger.Error().Err(err).Msg("failed to render component")
 		return err
 	}
 

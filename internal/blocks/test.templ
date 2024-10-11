@@ -1,13 +1,33 @@
 package blocks
 
+css hello() {
+	background-color: teal;
+}
+
 templ blockTest(args BlockArgsTest) {
-	<p>Hello { args.Name }!</p>
+	<p class={ hello() }>Hello { args.Name }!</p>
 }
 
 type BlockArgsTest struct {
 	Name string `json:"name"`
 }
 
+css padd(color string) {
+	padding: 1em;
+	background-color: { color };
+}
+
+type BlockArgsPadd struct {
+	Color string `json:"color"`
+}
+
+templ blockPadd(args BlockArgsPadd) {
+	<div class={ padd(args.Color) }>
+		{ children... }
+	</div>
+}
+
 func init() {
 	registerBlock(blockTest)
+	registerBlock(blockPadd)
 }
