@@ -147,7 +147,7 @@ css cssPage() {
 
 templ ShowPage(pg *data.Page) {
 	<div class={ cssPage() }>
-		<h4>id: { pg.GetID() }</h4>
+		<h4>id: { pg.GetIDString() }</h4>
 		<p>route: { pg.Method } ".{ pg.Path }"</p>
 		<p>name: { pg.Name }</p>
 		<div>
@@ -159,7 +159,7 @@ templ ShowPage(pg *data.Page) {
 
 templ ShowRoutes(rt *RouteTree) {
 	<div class={ cssRoute() }>
-		<h3>id: { rt.GetID() }</h3>
+		<h3>id: { rt.GetIDString() }</h3>
 		<p>prefix: ".{ rt.Prefix }"</p>
 		<div>
 			<p>pages: </p>

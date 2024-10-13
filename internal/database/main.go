@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/Alan-Daniels/web/internal/config"
 	"github.com/surrealdb/surrealdb.go"
 	"github.com/surrealdb/surrealdb.go/pkg/models"
@@ -33,28 +35,11 @@ func Init(Config *config.Config) (*DB, error) {
 	return &DB{db: db}, nil
 }
 
-func (db *DB) Branches(parent string) (RawResponse, error) {
-	resps, err := db.Query("SELECT * FROM Group WHERE parent = $parent", Map{
-		"parent": parent,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return resps[0], nil
-}
-
-func (db *DB) Pages(parent string) (RawResponse, error) {
-	resps, err := db.Query("SELECT * FROM Page WHERE parent = $parent", Map{
-		"parent": parent,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return resps[0], nil
-}
-
 func (db *DB) Insert(table string, item interface{}) (RawResponse, error) {
 	resps, err := toRawResponses(db.db.Insert(table, item))
+	if len(resps) != 1 {
+		return nil, fmt.Errorf("Expected 1 response but got %d", len(resps))
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -63,4 +48,15 @@ func (db *DB) Insert(table string, item interface{}) (RawResponse, error) {
 
 func (db *DB) Query(sql string, vars interface{}) ([]RawResponse, error) {
 	return toRawResponses(db.db.Query(sql, vars))
+}
+
+func (db *DB) QueryFirst(sql string, vars interface{}) (RawResponse, error) {
+	resps, err := toRawResponses(db.db.Query(sql, vars))
+	if len(resps) != 1 {
+		return nil, fmt.Errorf("Expected 1 response but got %d", len(resps))
+	}
+	if err != nil {
+		return nil, err
+	}
+	return resps[0], nil
 }

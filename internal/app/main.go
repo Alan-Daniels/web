@@ -23,7 +23,10 @@ func Init() error {
 	app.Static("/assets", (RootDir)+"/assets")
 	app.File("/favicon.ico", (RootDir)+"/assets/favicon.ico")
 
-	data.Init(app)
+	err := data.Init(app)
+	if err != nil {
+		Logger.Error().Err(err).Msg("Failed to build pages, only admin will be accessable")
+	}
 
 	adm := app.Group("/admin")
 	admin.Init(adm)
@@ -43,7 +46,7 @@ func Init() error {
 
 	// recover from panics
 	app.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
-		LogErrorFunc: func(c echo.Context, err error, stack []byte) error{
+		LogErrorFunc: func(c echo.Context, err error, stack []byte) error {
 			Logger.Error().Stack().Err(err).Msg("Encountered a PANIC while serving an endpoint")
 			return err
 		},

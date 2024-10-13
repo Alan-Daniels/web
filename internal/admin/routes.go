@@ -19,23 +19,27 @@ func NewRouteTree(g data.Group) (rt *RouteTree) {
 	return rt
 }
 
-func BuildRouteTree(rt *RouteTree) {
-	pages, err := rt.Pages()
+func BuildRouteTree(rt *RouteTree, depth int) {
+	if depth > 1024 {
+		Logger.Error().Msg("Reached route max depth")
+		return
+	}
+	pages, err := (&data.Page{}).FromParentID(rt.GetIDString())
 	if err != nil {
 		Logger.Error().Err(err).Msg("Trouble getting Pages")
 		rt.PageChildren = make([]data.Page, 0)
 	}
-	rt.PageChildren = *pages
-	
-	groups, err := rt.Groups()
+	rt.PageChildren = pages
+
+	groups, err := (&data.Group{}).FromParentID(rt.GetIDString())
 	if err != nil {
 		Logger.Error().Err(err).Msg("Trouble getting Pages")
 		rt.GroupChildren = make([]RouteTree, 0)
 	}
-	rt.GroupChildren = make([]RouteTree, len(*groups))
-	for i := range *groups {
-		nrt := NewRouteTree((*groups)[i])
-		BuildRouteTree(nrt)
+	rt.GroupChildren = make([]RouteTree, len(groups))
+	for i := range groups {
+		nrt := NewRouteTree((groups)[i])
+		BuildRouteTree(nrt, depth + 1)
 		rt.GroupChildren[i] = *nrt
 	}
 }

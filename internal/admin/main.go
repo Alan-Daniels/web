@@ -14,6 +14,8 @@ import (
 func Init(g *echo.Group) {
 	g.GET("", admin)
 
+	g.GET("/db", testDb)
+
 	g.GET("/pl", playground)
 	g.POST("/pl", playgroundPost)
 
@@ -54,8 +56,7 @@ func mkpage(c echo.Context) error {
 	outs := make([]interface{}, 3)
 
 	page := new(data.Page)
-	page.ID = "Page:root"
-	// no parent
+	page.ID = nil
 	page.Method = "GET"
 	page.Path = ""
 	page.Name = "Root"
@@ -79,40 +80,38 @@ func mkpage(c echo.Context) error {
 
 	page.Content = *content
 
-	page, err := database.Unmarshal[data.Page](Database.Insert("Page", page))
+	page, err := page.Insert(page)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		outs[0] = err.Error()
 	} else {
-		page.ID = page.GetID()
 		outs[0] = page
 	}
 
 	group := new(data.Group)
+	group.ID = nil
 	group.Prefix = "/test"
-	group, err = database.Unmarshal[data.Group](Database.Insert("Group", group))
+	group, err = group.Insert(group)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		outs[1] = err.Error()
 	} else {
-		group.ID = group.GetID()
 		outs[1] = group
 	}
 
 	page = new(data.Page)
 	page.ID = nil
-	page.Parent = group.GetID()
+	page.Parent = group.GetIDString()
 	page.Method = "GET"
 	page.Path = "/test"
 	page.Name = "Root"
 	page.Content.BlockName = ":)))))"
 	page.Content.BlockOps = nil
-	page, err = database.Unmarshal[data.Page](Database.Insert("Page", page))
+	page, err = page.Insert(page)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		outs[2] = err.Error()
 	} else {
-		page.ID = page.GetID()
 		outs[2] = page
 	}
 
@@ -123,8 +122,7 @@ func mkpage(c echo.Context) error {
 
 func admin(c echo.Context) error {
 	rt := new(RouteTree)
-	rt.ID = ""
-	BuildRouteTree(rt)
+	BuildRouteTree(rt, 0)
 
 	return Render(c, http.StatusOK, ShowRoutes(rt))
 }
@@ -141,6 +139,20 @@ func playgroundPost(c echo.Context) error {
 
 	c.JSONBlob(http.StatusOK, pretty)
 	return nil
+}
+
+func testDb(c echo.Context) error {
+	page, err := (&data.Page{}).FromID("Page:rootpage")
+	if err != nil {
+		pretty, err := json.Marshal(err.Error())
+		if err != nil {
+			return err
+		}
+		c.JSONBlob(http.StatusInternalServerError, pretty)
+		return nil
+	}
+
+	return Render(c, http.StatusOK, ShowPage(&page))
 }
 
 func playground(c echo.Context) error {
