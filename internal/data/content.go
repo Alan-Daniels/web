@@ -11,7 +11,7 @@ import (
 
 var maxDepth = 1024
 
-func (c *Content) ToComponent(depth int) (comp templ.Component, err error) {
+func (c *Block) ToComponent(depth int) (comp templ.Component, err error) {
 	if depth >= maxDepth {
 		return nil, fmt.Errorf("depth of %d reached, this could be caused by a content dependancy loop (or a really deep dependancy tree)", maxDepth)
 	}

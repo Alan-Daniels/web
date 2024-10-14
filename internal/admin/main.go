@@ -2,6 +2,7 @@ package admin
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	. "github.com/Alan-Daniels/web/internal"
@@ -20,19 +21,21 @@ func Init(g *echo.Group) {
 	g.GET("/mkpage", mkpage)
 
 	g.GET("/test", test)
+
+	g.GET("/edit", edit)
 }
 
 func test(c echo.Context) error {
-	content := new(data.Content)
+	content := new(data.Block)
 	content.BlockName = "blocks.blockPadd"
 	content.BlockOps = make(map[string]interface{})
 	content.BlockOps["color"] = "red"
-	hello := new(data.Content)
+	hello := new(data.Block)
 	hello.BlockName = "blocks.blockTest"
 	hello.BlockOps = make(map[string]interface{})
 	hello.BlockOps["name"] = "WORLD"
 	content.Children = append(content.Children, *hello)
-	chContent := new(data.Content)
+	chContent := new(data.Block)
 	chContent.BlockName = "blocks.blockPadd"
 	chContent.BlockOps = make(map[string]interface{})
 	chContent.BlockOps["color"] = "green"
@@ -61,16 +64,16 @@ func mkpage(c echo.Context) (err error) {
 	page.Path = ""
 	page.Name = "Root"
 
-	content := new(data.Content)
+	content := new(data.Block)
 	content.BlockName = "blocks.blockPadd"
 	content.BlockOps = make(map[string]interface{})
 	content.BlockOps["color"] = "red"
-	hello := new(data.Content)
+	hello := new(data.Block)
 	hello.BlockName = "blocks.blockTest"
 	hello.BlockOps = make(map[string]interface{})
 	hello.BlockOps["name"] = "WORLD"
 	content.Children = append(content.Children, *hello)
-	chContent := new(data.Content)
+	chContent := new(data.Block)
 	chContent.BlockName = "blocks.blockPadd"
 	chContent.BlockOps = make(map[string]interface{})
 	chContent.BlockOps["color"] = "green"
@@ -78,7 +81,7 @@ func mkpage(c echo.Context) (err error) {
 	chContent.Children = append(chContent.Children, *hello)
 	content.Children = append(content.Children, *chContent)
 
-	page.Content = *content
+	page.Block = *content
 
 	page, err = page.Insert(page)
 	if err != nil {
@@ -105,8 +108,8 @@ func mkpage(c echo.Context) (err error) {
 	page.Method = "GET"
 	page.Path = "/test"
 	page.Name = "Root"
-	page.Content.BlockName = ":)))))"
-	page.Content.BlockOps = nil
+	page.Block.BlockName = ":)))))"
+	page.Block.BlockOps = nil
 	page, err = page.Insert(page)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
@@ -123,9 +126,35 @@ func mkpage(c echo.Context) (err error) {
 func admin(c echo.Context) error {
 	rt := new(RouteTree)
 	BuildRouteTree(rt, 0)
-	Logger.Debug().Any("rt", rt).Msg("pre-render")
 
 	return Render(c, http.StatusOK, ShowRoutes(rt))
+}
+
+func edit(c echo.Context) error {
+	idStr := c.QueryParams().Get("id")
+	id := models.ParseRecordID(idStr)
+	switch id.Table {
+	case "Page":
+		return editPage(c, id)
+	default:
+		return fmt.Errorf("Could not edit Object of type %s", id.Table)
+	}
+}
+
+func editPage(c echo.Context, id *models.RecordID) error {
+	var page data.Page
+	page, err := (&page).FromID(*id)
+	if err != nil {
+		pretty, err := json.Marshal(err.Error())
+		if err != nil {
+			return err
+		}
+		c.JSONBlob(http.StatusInternalServerError, pretty)
+		return nil
+	}
+
+	// todo: make an editor
+	return Render(c, http.StatusOK, Editor(page.Block, page.ID))
 }
 
 func testDb(c echo.Context) error {
@@ -161,7 +190,7 @@ func testDb2(c echo.Context) error {
 	return nil
 }
 
-func ContentComponent(c data.Content) templ.Component {
+func ContentComponent(c data.Block) templ.Component {
 	comp, _ := c.ToComponent(0)
 	return comp
 }

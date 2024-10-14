@@ -8,7 +8,7 @@ import (
 )
 
 func (r *Page) Init(p Branch) error {
-	comp, err := r.Content.ToComponent(0)
+	comp, err := r.Block.ToComponent(0)
 	if err != nil {
 		Logger.Error().Err(err).Any("page", *r).Msg("Can't register endpoint!")
 		return err

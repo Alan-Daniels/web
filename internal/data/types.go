@@ -55,32 +55,37 @@ type WildcardRoute struct {
 
 // --
 
-type Content struct {
-	Children  []Content              `json:"children,omitempty"`
+type Block struct {
+	Children  []Block                `json:"children,omitempty"`
 	BlockName string                 `json:"name"`
 	BlockOps  map[string]interface{} `json:"opts"`
 }
 
+type Content[T any] struct {
+	Block Block  `json:"content,omitempty"`
+	Name  string `json:"name"`
+	RecordID[T]
+	HasParent[T]
+	Parent *models.RecordID `json:"parent"`
+}
+
 type Template struct {
-	Content Content `json:"content,omitempty"`
-	Name    string  `json:"name"`
+	Content[Template]
 }
 
 type Page struct {
 	Route
-	Template
-	RecordID[Page]
-	HasParent[Page]
-	Parent *models.RecordID `json:"parent"`
+	Content[Page]
 }
 
 type Post struct {
-	Template
+	Content[Post]
 	Tag string
 }
 
 // --
 
+// static method
 func typeName[T any]() string {
 	return reflect.TypeOf(*(new(T))).Name()
 }
@@ -89,6 +94,7 @@ type RecordID[T any] struct {
 	ID *models.RecordID `json:"id,omitempty"`
 }
 
+// static method
 func (r *RecordID[T]) NewRecordID(id string) models.RecordID {
 	return models.NewRecordID(typeName[T](), id)
 }

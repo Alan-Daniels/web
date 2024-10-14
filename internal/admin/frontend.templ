@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"github.com/Alan-Daniels/web/internal/data"
+	"github.com/surrealdb/surrealdb.go/pkg/models"
 	"strings"
 )
 
@@ -147,14 +148,19 @@ css cssPage() {
 
 templ ShowPage(pg *data.Page) {
 	<div class={ cssPage() }>
-		<h4>id: { pg.GetIDString() }</h4>
+		<h4>id: { pg.GetIDString() }<span style="float: right;padding-right: 1em;"><a href={ templ.SafeURL(fmt.Sprintf("/admin/edit?id=%s", pg.GetIDString())) }>edit</a></span></h4>
 		<p>route: { pg.Method } ".{ pg.Path }"</p>
 		<p>name: { pg.Name }</p>
 		<div>
 			<p>content: </p>
-			@ContentComponent(pg.Content)
+			@ContentComponent(pg.Block)
 		</div>
 	</div>
+}
+
+templ Editor(content data.Block, id *models.RecordID) {
+	todo: sidebar for configuring this content, its children & so-on
+	@ContentComponent(content)
 }
 
 templ ShowRoutes(rt *RouteTree) {
