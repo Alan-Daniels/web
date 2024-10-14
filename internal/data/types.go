@@ -89,7 +89,14 @@ type RecordID[T any] struct {
 	ID *models.RecordID `json:"id,omitempty"`
 }
 
+func (r *RecordID[T]) NewRecordID(id string) models.RecordID {
+	return models.NewRecordID(typeName[T](), id)
+}
+
 func (r *RecordID[T]) GetIDString() string {
+	if r.ID == nil {
+		return "<nil>"
+	}
 	return r.ID.String()
 }
 
@@ -116,7 +123,7 @@ func (*RecordID[T]) FromID(id models.RecordID) (item T, err error) {
 type HasParent[T any] struct{}
 
 // static method
-func (*HasParent[T]) FromParentID(parentId *models.RecordID) ([]T, error) {
+func (*HasParent[T]) FromParentID(parentId *models.RecordID) (items []T, err error) {
 	results, err := surrealdb.Query[[]T](
 		Database,
 		fmt.Sprintf("SELECT * FROM %s WHERE parent = $parent", typeName[T]()),
@@ -129,7 +136,7 @@ func (*HasParent[T]) FromParentID(parentId *models.RecordID) ([]T, error) {
 		return nil, fmt.Errorf("Expected 1 result but got %d", len(*results))
 	}
 
-	items := (*results)[0].Result
+	items = (*results)[0].Result
 
 	return items, nil
 }

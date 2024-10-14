@@ -9,17 +9,13 @@ import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
-	"github.com/surrealdb/surrealdb.go/pkg/connection"
 	"github.com/surrealdb/surrealdb.go/pkg/models"
 )
 
 func Init(g *echo.Group) {
 	g.GET("", admin)
 
-	g.GET("/db", testDb)
-
-	g.GET("/pl", playground)
-	g.POST("/pl", playgroundPost)
+	g.GET("/db", testDb2)
 
 	g.GET("/mkpage", mkpage)
 
@@ -59,7 +55,8 @@ func mkpage(c echo.Context) (err error) {
 	outs := make([]interface{}, 3)
 
 	page := new(data.Page)
-	page.ID = &models.RecordID{Table: "Page", ID: "rootpage"}
+	id := page.NewRecordID("rootpage")
+	page.ID = &id
 	page.Method = "GET"
 	page.Path = ""
 	page.Name = "Root"
@@ -126,30 +123,14 @@ func mkpage(c echo.Context) (err error) {
 func admin(c echo.Context) error {
 	rt := new(RouteTree)
 	BuildRouteTree(rt, 0)
+	Logger.Debug().Any("rt", rt).Msg("pre-render")
 
 	return Render(c, http.StatusOK, ShowRoutes(rt))
 }
 
-func playgroundPost(c echo.Context) error {
-	query := c.Request().PostFormValue("query")
-	//res, err := surrealdb.Query[interface{}](Database, query, map[string]interface{}{})
-	var res connection.RPCResponse[[]surrealdb.QueryResult[interface{}]]
-
-	err := Database.Send(&res, "query", query, map[string]interface{}{})
-
-	if err != nil {
-		Logger.Error().Err(err).Msg("Error in the playground")
-		return err
-	}
-
-	pretty, err := json.Marshal(res)
-
-	c.JSONBlob(http.StatusOK, pretty)
-	return nil
-}
-
 func testDb(c echo.Context) error {
-	page, err := (&data.Page{}).FromID(models.NewRecordID("Page", "rootpage"))
+	var page data.Page
+	page, err := (&page).FromID(page.NewRecordID("rootpage"))
 	if err != nil {
 		pretty, err := json.Marshal(err.Error())
 		if err != nil {
@@ -162,8 +143,22 @@ func testDb(c echo.Context) error {
 	return Render(c, http.StatusOK, ShowPage(&page))
 }
 
-func playground(c echo.Context) error {
-	return Render(c, http.StatusOK, Playground("", ""))
+func testDb2(c echo.Context) error {
+	var page data.Page
+	pages, err := (&page).FromParentID(nil)
+
+	pretty, err := json.Marshal(pages)
+	if err != nil {
+		pretty, err := json.Marshal(err.Error())
+		if err != nil {
+			return err
+		}
+		c.JSONBlob(http.StatusInternalServerError, pretty)
+		return nil
+	}
+
+	c.JSONBlob(http.StatusInternalServerError, pretty)
+	return nil
 }
 
 func ContentComponent(c data.Content) templ.Component {

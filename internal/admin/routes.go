@@ -33,8 +33,7 @@ func BuildRouteTree(rt *RouteTree, depth int) {
 
 	groups, err := (&data.Group{}).FromParentID(rt.ID)
 	if err != nil {
-		Logger.Error().Err(err).Msg("Trouble getting Pages")
-		rt.GroupChildren = make([]RouteTree, 0)
+		groups = make([]data.Group, 0)
 	}
 	rt.GroupChildren = make([]RouteTree, len(groups))
 	for i := range groups {

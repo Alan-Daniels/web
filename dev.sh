@@ -6,7 +6,7 @@ setupdb () {
   USE NAMESPACE localhost;
   DEFINE DATABASE IF NOT EXISTS web;
   USE DATABASE web;
-  DEFINE USER OVERWRITE localhost ON NAMESPACE PASSWORD \"dev-database-pass\" ROLES EDITOR;" | surreal sql -e http://127.0.0.1:7999 -u root -p root
+  DEFINE USER OVERWRITE localhost ON NAMESPACE PASSWORD \"dev-database-pass\" ROLES EDITOR;" | surreal sql -e http://127.0.0.1:8000 -u root -p root
 }
 
 doair () {
