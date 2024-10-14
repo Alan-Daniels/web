@@ -7,7 +7,7 @@ import (
 )
 
 func (b *Group) initPages(e Branch) {
-	pages, err := (&Page{}).FromParentID(b.GetIDString())
+	pages, err := (&Page{}).FromParentID(b.ID)
 	if err == nil {
 		for _, page := range pages {
 			page.Init(e)
@@ -16,7 +16,7 @@ func (b *Group) initPages(e Branch) {
 }
 
 func (b *Group) initGroups(e Branch, ctx context.Context) {
-	groups, err := (&Group{}).FromParentID(b.GetIDString())
+	groups, err := (&Group{}).FromParentID(b.ID)
 	if err == nil {
 		for _, group := range groups {
 			select {

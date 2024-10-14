@@ -6,9 +6,11 @@ import (
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/data"
-	"github.com/Alan-Daniels/web/internal/database"
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
+	"github.com/surrealdb/surrealdb.go"
+	"github.com/surrealdb/surrealdb.go/pkg/connection"
+	"github.com/surrealdb/surrealdb.go/pkg/models"
 )
 
 func Init(g *echo.Group) {
@@ -51,12 +53,13 @@ func test(c echo.Context) error {
 	return Render(c, http.StatusOK, component)
 }
 
-func mkpage(c echo.Context) error {
-	Database.Query("DELETE Page;DELETE Group;", database.Map{})
+func mkpage(c echo.Context) (err error) {
+	surrealdb.Delete(Database, models.Table("Page"))
+	surrealdb.Delete(Database, models.Table("Group"))
 	outs := make([]interface{}, 3)
 
 	page := new(data.Page)
-	page.ID = nil
+	page.ID = &models.RecordID{Table: "Page", ID: "rootpage"}
 	page.Method = "GET"
 	page.Path = ""
 	page.Name = "Root"
@@ -80,7 +83,7 @@ func mkpage(c echo.Context) error {
 
 	page.Content = *content
 
-	page, err := page.Insert(page)
+	page, err = page.Insert(page)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		outs[0] = err.Error()
@@ -101,7 +104,7 @@ func mkpage(c echo.Context) error {
 
 	page = new(data.Page)
 	page.ID = nil
-	page.Parent = group.GetIDString()
+	page.Parent = group.ID
 	page.Method = "GET"
 	page.Path = "/test"
 	page.Name = "Root"
@@ -129,7 +132,11 @@ func admin(c echo.Context) error {
 
 func playgroundPost(c echo.Context) error {
 	query := c.Request().PostFormValue("query")
-	res, err := Database.Query(query, database.Map{})
+	//res, err := surrealdb.Query[interface{}](Database, query, map[string]interface{}{})
+	var res connection.RPCResponse[[]surrealdb.QueryResult[interface{}]]
+
+	err := Database.Send(&res, "query", query, map[string]interface{}{})
+
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		return err
@@ -142,7 +149,7 @@ func playgroundPost(c echo.Context) error {
 }
 
 func testDb(c echo.Context) error {
-	page, err := (&data.Page{}).FromID("Page:rootpage")
+	page, err := (&data.Page{}).FromID(models.NewRecordID("Page", "rootpage"))
 	if err != nil {
 		pretty, err := json.Marshal(err.Error())
 		if err != nil {

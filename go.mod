@@ -11,7 +11,7 @@ require (
 	github.com/labstack/echo-contrib v0.17.1
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/rs/zerolog v1.33.0
-	github.com/surrealdb/surrealdb.go v0.2.2-0.20240923142710-3d48437c7f05
+	github.com/surrealdb/surrealdb.go v0.2.2-0.20241009120630-5bbb7b1e2a1b
 	golang.org/x/time v0.5.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -27,6 +27,7 @@ require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/gorilla/context v1.1.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
