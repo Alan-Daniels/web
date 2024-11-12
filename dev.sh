@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/usr/bin/env nix-shell
+#!nix-shell -i bash -p bash tailwindcss
 
 setupdb () {
   sleep 1
@@ -22,7 +23,7 @@ mkdir -p ./tmp/db
 npx tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify
 (trap 'kill 0' SIGINT; 
 templ generate -source-map-visualisations -watch &
-npx tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify --watch &
+# tailwindcss -i ./internal/input.css -o ./assets/styles.css --minify --watch &
 surreal start --bind 127.0.0.1:8000 -A --log debug -u root -p root "file://${DEVPWD}/tmp/db/" &
 setupdb &
 doair

@@ -8,28 +8,63 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
 )
 
 type Block interface {
 	Component(map[string]interface{}) (templ.Component, error)
+	Editor(map[string]interface{}, int, int) (templ.Component, error)
+	DefArgs() (*map[string]interface{}, error)
 }
 type Blocks map[string]Block
 
 type _Block[T any] struct {
 	comp func(T) templ.Component
+	name string
 }
 
 func (bl *_Block[T]) Component(args map[string]interface{}) (templ.Component, error) {
-	t, err := bl.unmarshal(args)
+	t, err := bl.marshal(args)
 	if err != nil {
 		return nil, err
 	}
 	return bl.comp(*t), nil
 }
 
-func (bl *_Block[T]) unmarshal(args map[string]interface{}) (*T, error) {
+func (bl *_Block[T]) Editor(args map[string]interface{}, blockId, parentBlockId int) (templ.Component, error) {
+	t, err := bl.marshal(args)
+	if err != nil {
+		return nil, err
+	}
+	form := bl.Form(*t, blockId, parentBlockId)
+	return form, nil
+}
+
+func (bl *_Block[T]) DefArgs() (*map[string]interface{}, error) {
+	a := new(T)
+	return bl.unmarshal(a)
+}
+
+func (bl *_Block[T]) marshal(args map[string]interface{}) (*T, error) {
 	t := new(T)
+
+	var jsonBytes []byte
+	jsonBytes, err := json.Marshal(args)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialise response '%+v' to object: %w", args, err)
+	}
+
+	err = json.Unmarshal(jsonBytes, t)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func (bl *_Block[T]) unmarshal(args *T) (*map[string]interface{}, error) {
+	t := new(map[string]interface{})
 
 	var jsonBytes []byte
 	jsonBytes, err := json.Marshal(args)
@@ -60,56 +95,9 @@ func registerBlock[T any](comp func(T) templ.Component) {
 	name := runtime.FuncForPC(reflect.ValueOf(comp).Pointer()).Name()
 	namep := strings.Split(name, "/")
 	name = namep[len(namep)-1]
+	block.name = name
 	if blocks == nil {
 		blocks = make(Blocks)
 	}
 	blocks[name] = block
-}
-
-func Merge(parent templ.Component, children []templ.Component) templ.Component {
-	child := templruntime.GeneratedTemplate(func(input templruntime.GeneratedComponentInput) (retErr error) {
-		writer, ctx := input.Writer, input.Context
-		if ctxerr := ctx.Err(); ctxerr != nil {
-			return ctxerr
-		}
-		buffer, existing := templruntime.GetBuffer(writer)
-		if !existing {
-			defer func() {
-				err := templruntime.ReleaseBuffer(buffer)
-				if retErr == nil {
-					retErr = err
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		for i := range children {
-			retErr = (children[i]).Render(ctx, buffer)
-			if retErr != nil {
-				return retErr
-			}
-		}
-		return retErr
-	})
-	return templruntime.GeneratedTemplate(func(input templruntime.GeneratedComponentInput) (retErr error) {
-		writer, ctx := input.Writer, input.Context
-		if ctxerr := ctx.Err(); ctxerr != nil {
-			return ctxerr
-		}
-		buffer, existing := templruntime.GetBuffer(writer)
-		if !existing {
-			defer func() {
-				err := templruntime.ReleaseBuffer(buffer)
-				if retErr == nil {
-					retErr = err
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		ctx = templ.ClearChildren(ctx)
-		retErr = parent.Render(templ.WithChildren(ctx, child), buffer)
-		if retErr != nil {
-			return retErr
-		}
-		return retErr
-	})
 }

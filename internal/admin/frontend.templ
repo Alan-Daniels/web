@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"github.com/Alan-Daniels/web/internal/blocks"
 	"github.com/Alan-Daniels/web/internal/data"
 	"github.com/surrealdb/surrealdb.go/pkg/models"
 	"strings"
@@ -19,7 +20,7 @@ var Overlay0 = "#6c7086"
 var Overlay1 = "#7f849c"
 var Overlay2 = "#9399b2"
 
-templ Page() {
+templ Page(extraButtons []templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -28,14 +29,11 @@ templ Page() {
 			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + "indev" }/>
 			<!-- <script src="https://unpkg.com/htmx.org@1.9.11"></script> -->
 		</head>
-		<body class="bg-dark">
-			<div class={ "mx-auto pt-6 px-3 md:px-0 md:max-w-[50rem] xl:max-w-[60rem]" }>
-				@Head()
-				<div class={ "text-text" }>
-					{ children... }
-				</div>
+		<body class="bg-zinc-800">
+			<div class="p-4">
+				@Head(extraButtons)
+				{ children... }
 			</div>
-			<div class="pb-[8rem]"></div>
 		</body>
 	</html>
 }
@@ -44,14 +42,17 @@ css headFlavour() {
 	background: { templ.SafeCSSProperty("repeating-linear-gradient(95deg, "+Mauve+", "+Mauve+" 2px, transparent 0, transparent 9px)") };
 }
 
-templ Head() {
-	<header class="pb-6 text-5xl md:text-3xl lg:text-base">
+templ Head(extraButtons []templ.Component) {
+	<header class="pb-6 text-5xl md:text-3xl lg:text-white">
 		<div class={ "flex rounded overflow-hidden", headFlavour() }>
-			<a href="/" class={ "bg-muave p-2 text-dark hover:underline" }>Alan Daniels</a>
-			<nav class="ml-auto mr-8 flex h-fit w-fit self-center text-text">
-				<a href="/about" class="bg-dark p-1 m-1 rounded hover:text-muave">About</a>
-				<a href="/blog" class="bg-dark p-1 m-1 rounded hover:text-muave">Blog</a>
-				<a href="/now" class="bg-dark p-1 m-1 rounded hover:text-muave">Now</a>
+			<a href="/admin" class={ "bg-purple-400 p-2 text-gray-800 hover:underline" }>Admin</a>
+			<nav class="ml-auto mr-8 flex h-fit w-fit self-center text-white">
+				// <a href="/about" class="bg-dark p-1 m-1 rounded hover:text-purple-400">About</a>
+				// <a href="/blog" class="bg-dark p-1 m-1 rounded hover:text-purple-400">Blog</a>
+				// <a href="/now" class="bg-dark p-1 m-1 rounded hover:text-purple-400">Now</a>
+				for _,link := range extraButtons {
+					@link
+				}
 			</nav>
 		</div>
 	</header>
@@ -59,7 +60,7 @@ templ Head() {
 
 templ Tooltip(toolText string) {
 	<div class="group flex relative">
-		<span class="group-hover:opacity-100 transition-opacity bg-surface-100 px-1 text-sm text-text rounded-md absolute left-1/2 -translate-x-1/2 translate-y-full opacity-0 m-4 mx-auto z-10">{ toolText }</span>
+		<span class="group-hover:opacity-100 transition-opacity bg-surface-100 px-1 text-sm text-white rounded-md absolute left-1/2 -translate-x-1/2 translate-y-full opacity-0 m-4 mx-auto z-10">{ toolText }</span>
 		{ children... }
 	</div>
 }
@@ -77,12 +78,12 @@ templ Title(title string) {
 }
 
 templ Section(title string) {
-	<h2 class="text-2xl pt-5 font-bold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title } <a class="text-muave hover:underline" href={ templ.SafeURL("#" + strings.ToLower(strings.ReplaceAll(title, " ", "-"))) }>#</a></h2>
+	<h2 class="text-2xl pt-5 font-bold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title } <a class="text-purple-400 hover:underline" href={ templ.SafeURL("#" + strings.ToLower(strings.ReplaceAll(title, " ", "-"))) }>#</a></h2>
 	{ children... }
 }
 
 templ SubSection(title string) {
-	<h3 class="text-xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title } <a class="text-muave hover:underline" href={ templ.SafeURL("#" + strings.ToLower(strings.ReplaceAll(title, " ", "-"))) }>#</a></h3>
+	<h3 class="text-xl pt-5 font-semibold" id={ strings.ToLower(strings.ReplaceAll(title, " ", "-")) }>{ title } <a class="text-purple-400 hover:underline" href={ templ.SafeURL("#" + strings.ToLower(strings.ReplaceAll(title, " ", "-"))) }>#</a></h3>
 	{ children... }
 }
 
@@ -110,13 +111,13 @@ templ InlineCode() {
 }
 
 templ Link(uri templ.SafeURL) {
-	<a href={ uri } class="text-muave hover:underline">
+	<a href={ uri } class="text-purple-400 hover:underline">
 		{ children... }
 	</a>
 }
 
 templ OutLink(uri templ.SafeURL) {
-	<a href={ uri } class="text-muave hover:underline" target="_blank">
+	<a href={ uri } class="text-purple-400 hover:underline" target="_blank">
 		{ children... }
 	</a>
 }
@@ -148,7 +149,14 @@ css cssPage() {
 
 templ ShowPage(pg *data.Page) {
 	<div class={ cssPage() }>
-		<h4>id: { pg.GetIDString() }<span style="float: right;padding-right: 1em;"><a href={ templ.SafeURL(fmt.Sprintf("/admin/edit?id=%s", pg.GetIDString())) }>edit</a></span></h4>
+		<h4>
+			id: { pg.GetIDString() }
+			<span style="float: right;padding-right: 1em;">
+				@Link(templ.SafeURL(fmt.Sprintf("%s?id=%s", routes["editor"].Path, pg.GetIDString()))) {
+					edit 
+				}
+			</span>
+		</h4>
 		<p>route: { pg.Method } ".{ pg.Path }"</p>
 		<p>name: { pg.Name }</p>
 		<div>
@@ -158,9 +166,71 @@ templ ShowPage(pg *data.Page) {
 	</div>
 }
 
-templ Editor(content data.Block, id *models.RecordID) {
-	todo: sidebar for configuring this content, its children & so-on
-	@ContentComponent(content)
+templ EditorSaveBtn(id *models.RecordID) {
+	<button id="editor~save" class="text-sm p-1 m-1 bg-zinc-800 text-purple-400 hover:text-purple-300 rounded" data-id={ id.String() }>Save</button>
+}
+
+templ PageEditor(content data.Block, id *models.RecordID) {
+	{{ bct := NewBlockCounter(0) }}
+	@Page([]templ.Component{EditorSaveBtn(id)}) {
+		<div class="inline-flex w-[100%]">
+			<div class="flex-grow">
+				@EditBlock(content, bct)
+			</div>
+			<div class="bg-zinc-600 order-first">
+				{{ ct := bct.Reset() }}
+				<input type="hidden" name="block-count" id="block-count" value={ fmt.Sprint(ct) }/>
+				@EditBlockForm(content, bct, 0)
+			</div>
+		</div>
+	}
+	<div style="display:none;" id="editor~urls" data-save={ routes["editor.save"].Path } data-block-update={ routes["editor.block.update"].Path } data-block-create={ routes["editor.block.create"].Path }></div>
+	@blocks.NewBlockModal(bct.Next())
+	@blocks.InlineJs()
+}
+
+templ TemplEditor(content data.Block, id, parent int) {
+	<template>
+		{{ bct := NewBlockCounter(id - 1) }}
+		@EditBlock(content, bct)
+		{{ bct = NewBlockCounter(id - 1) }}
+		@EditBlockForm(content, bct, parent)
+	</template>
+}
+
+templ EditBlockForm(b data.Block, bId *BlockCounter, parent int) {
+	{{ id := bId.Next() }}
+	{{ form, _ := b.Form(id, parent) }}
+	@form {
+		for _, child := range b.Children {
+			@EditBlockForm(child, bId, id)
+		}
+	}
+}
+
+templ EditBlockChildren() {
+	<div class="block~children">
+		{ children... }
+	</div>
+}
+
+templ EditBlock(b data.Block, bId *BlockCounter) {
+	{{ id := bId.Next() }}
+	<div id={ fmt.Sprintf("block~%d", id) } data-children-selector=".block\~children" data-id={ fmt.Sprint(id) }>
+		@EditorComponent(b) {
+			@EditBlockChildren() {
+				for _, child := range b.Children {
+					@EditBlock(child, bId)
+				}
+			}
+		}
+	</div>
+}
+
+templ PageRoutes(rt *RouteTree) {
+	@Page([]templ.Component{}) {
+		@ShowRoutes(rt)
+	}
 }
 
 templ ShowRoutes(rt *RouteTree) {

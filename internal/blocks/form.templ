@@ -1,0 +1,120 @@
+package blocks
+
+import (
+	_ "embed"
+	"fmt"
+	"reflect"
+)
+
+templ Merge(parent templ.Component, children []templ.Component) {
+	@parent {
+		for _,child := range children {
+			@child
+		}
+	}
+}
+
+var InlineJsOnce = templ.NewOnceHandle()
+
+//go:embed form.js
+var inlineJs string
+
+templ InlineJs() {
+	@InlineJsOnce.Once() {
+		@templ.Raw(fmt.Sprintf("<script>%s</script>", inlineJs))
+	}
+}
+
+templ (bl *_Block[T]) formField(field reflect.StructField, value reflect.Value, blockId, parentBlockId int) {
+	{{ inputName := fmt.Sprintf("%d.%s", blockId, field.Name) }}
+	{{ id := fmt.Sprint(blockId) }}
+	{{ parent := fmt.Sprint(parentBlockId) }}
+	<label for={ inputName }>{ field.Name }</label>
+	<input type="text" id={ inputName } name={ field.Name } class="form-field" value={ value.String() } data-id={ id } data-parent={ parent }/>
+	// todo: make a set of supported types, and a specific field for each
+}
+
+templ (bl *_Block[T]) Form(args T, blockId, parentBlockId int) {
+	{{ ref := reflect.ValueOf(args) }}
+	{{ t := ref.Type() }}
+	{{ fieldLen := ref.NumField() }}
+	{{ id := fmt.Sprint(blockId) }}
+	{{ parent := fmt.Sprint(parentBlockId) }}
+	{{ blockTarget := fmt.Sprintf("block~%d", blockId) }}
+	{{ target := fmt.Sprintf("block-form~%d", blockId) }}
+	<div id={ target }>
+		<h6>
+			Block #{ fmt.Sprintf("%d (%s)",blockId, bl.name) }
+			<button data-id={ id } class="block-form~delete bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 rounded shadow px-1 ml-1" data-form-target={ target } data-block-target={ blockTarget }>-</button>
+		</h6>
+		<form onsubmit="return false;" class="block-form" data-parent={ parent } data-name={ bl.name } data-block-target={ blockTarget } data-children-selector={ fmt.Sprintf("form.block-form[data-parent=\"%d\"]", blockId) }>
+			for i := 0; i< fieldLen; i++ {
+				@bl.formField(t.Field(i), ref.Field(i), blockId, parentBlockId)
+			}
+		</form>
+		{{ childArea := fmt.Sprintf("block-form~children-%d", blockId) }}
+		<form onsubmit="return false;">
+			<input type="checkbox" checked class="block-form~toggle-children" data-form-target={ childArea } data-block-target={ blockTarget }/>
+			<button class="block-form~new bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 rounded shadow px-1" data-block-target={ blockTarget } data-form-target={ childArea }>+</button> // todo: hook up to a modal
+		</form>
+		<div class="border-t-purple-400 border-b-white border-y my-1 pb-1" data-id={ id } id={ childArea }>
+			{ children... }
+		</div>
+	</div>
+}
+
+templ NewBlockModal(blockIdLast int) {
+	<div id="new-block~wkspace"></div>
+	<div id="new-block~modal" data-id={ fmt.Sprint(blockIdLast) } class="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display:none;">
+		<!--
+    Background backdrop, show/hide based on modal state.
+
+    Entering: "ease-out duration-300"
+      From: "opacity-0"
+      To: "opacity-100"
+    Leaving: "ease-in duration-200"
+      From: "opacity-100"
+      To: "opacity-0"
+  -->
+		<div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+		<div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+			<div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+				<!--
+        Modal panel, show/hide based on modal state.
+
+        Entering: "ease-out duration-300"
+          From: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          To: "opacity-100 translate-y-0 sm:scale-100"
+        Leaving: "ease-in duration-200"
+          From: "opacity-100 translate-y-0 sm:scale-100"
+          To: "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+      -->
+				<div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+					<div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+						<div class="sm:flex sm:items-start">
+							<div class="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+								<svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"></path>
+								</svg>
+							</div>
+							<div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+								<h3 class="text-base font-semibold text-gray-900" id="modal-title">Create new Block</h3>
+								<div class="mt-2">
+									<select class="bg-zinc-100" name="name" id="new-block~name">
+										for name := range blocks {
+											<option value={ name }>{ name }</option>
+										}
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+						<button type="button" id="new-block~create" class="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 sm:ml-3 sm:w-auto">Create</button>
+						<button type="button" id="new-block~cancel" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

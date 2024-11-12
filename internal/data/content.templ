@@ -6,7 +6,7 @@ css brokenContentCss() {
 	background-color: #FF0000AA;
 }
 
-templ brokenContent(c *Content, err error) {
+templ brokenBlock(c *Block, err error) {
 	<div class={ brokenContentCss() }>
 		<h4>Could not render this content:</h4>
 		<p>{ err.Error() }</p>

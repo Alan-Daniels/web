@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/data"
@@ -13,16 +14,40 @@ import (
 	"github.com/surrealdb/surrealdb.go/pkg/models"
 )
 
+type BlockCounter struct {
+	state int
+}
+
+func (bId *BlockCounter) Next() int {
+	bId.state += 1
+	return bId.state
+}
+
+func (bId *BlockCounter) Reset() int {
+	state := bId.state
+	bId.state = 0
+	return state
+}
+
+func NewBlockCounter(start int) *BlockCounter {
+	bId := BlockCounter{state: start}
+	return &bId
+}
+
+var routes map[string]*echo.Route
+
 func Init(g *echo.Group) {
+	routes = make(map[string]*echo.Route)
+
 	g.GET("", admin)
-
 	g.GET("/db", testDb2)
-
 	g.GET("/mkpage", mkpage)
-
 	g.GET("/test", test)
 
-	g.GET("/edit", edit)
+	routes["editor"] = g.GET("/edit", eEditor)
+	routes["editor.save"] = g.POST("/edit", eEditorSave)
+	routes["editor.block.create"] = g.GET("/edit/block", eBlockCreate)
+	routes["editor.block.update"] = g.POST("/edit/block", eBlockUpdate)
 }
 
 func test(c echo.Context) error {
@@ -58,7 +83,7 @@ func mkpage(c echo.Context) (err error) {
 	outs := make([]interface{}, 3)
 
 	page := new(data.Page)
-	id := page.NewRecordID("rootpage")
+	id := data.NewRecordID[data.Page]("rootpage")
 	page.ID = &id
 	page.Method = "GET"
 	page.Path = ""
@@ -83,7 +108,7 @@ func mkpage(c echo.Context) (err error) {
 
 	page.Block = *content
 
-	page, err = page.Insert(page)
+	page, err = data.Insert(page)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		outs[0] = err.Error()
@@ -94,7 +119,7 @@ func mkpage(c echo.Context) (err error) {
 	group := new(data.Group)
 	group.ID = nil
 	group.Prefix = "/test"
-	group, err = group.Insert(group)
+	group, err = data.Insert(group)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		outs[1] = err.Error()
@@ -110,7 +135,7 @@ func mkpage(c echo.Context) (err error) {
 	page.Name = "Root"
 	page.Block.BlockName = ":)))))"
 	page.Block.BlockOps = nil
-	page, err = page.Insert(page)
+	page, err = data.Insert(page)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Error in the playground")
 		outs[2] = err.Error()
@@ -127,10 +152,91 @@ func admin(c echo.Context) error {
 	rt := new(RouteTree)
 	BuildRouteTree(rt, 0)
 
-	return Render(c, http.StatusOK, ShowRoutes(rt))
+	return Render(c, http.StatusOK, PageRoutes(rt))
 }
 
-func edit(c echo.Context) error {
+func eBlockCreate(c echo.Context) error {
+	params := c.QueryParams()
+	idStr := params.Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return fmt.Errorf("id must be an int")
+	}
+	parentStr := params.Get("parentid")
+	parent, err := strconv.Atoi(parentStr)
+	if err != nil {
+		return fmt.Errorf("parent id must be an int")
+	}
+	name := params.Get("name")
+
+	b, ok := Blocks[name]
+	if !ok {
+		return fmt.Errorf("cant find block with name")
+	}
+
+	defops, err := b.DefArgs()
+	if err != nil {
+		return err
+	}
+	block := new(data.Block)
+	block.BlockName = name
+	block.BlockOps = *defops
+
+	return Render(c, http.StatusOK, TemplEditor(*block, id, parent))
+}
+
+func eBlockUpdate(c echo.Context) error {
+	var block data.Block
+
+	err := c.Bind(&block)
+	if err != nil {
+		Logger.Err(err).Send()
+		return err
+	}
+
+	Logger.Debug().Any("block", block).Send()
+
+	component, err := block.EditorComponent(0)
+	if err != nil {
+		Logger.Error().Err(err).Msg("failed to render component")
+		return err
+	}
+
+	childStub := EditBlockChildren()
+
+	ctx := templ.WithChildren(c.Request().Context(), childStub)
+	buf := templ.GetBuffer()
+	defer templ.ReleaseBuffer(buf)
+
+	err = component.Render(ctx, buf)
+	if err != nil {
+		Logger.Error().Err(err).Msg("failed to render component")
+		return err
+	}
+
+	return c.HTML(http.StatusOK, buf.String())
+}
+
+func eEditorSave(c echo.Context) error {
+	idStr := c.QueryParams().Get("id")
+	id := models.ParseRecordID(idStr)
+	var block data.Block
+
+	err := c.Bind(&block)
+	if err != nil {
+		Logger.Err(err).Send()
+		return err
+	}
+
+	switch id.Table {
+	case "Page":
+		return savePage(c, id, &block)
+	default:
+		return fmt.Errorf("Could not edit Object of type %s", id.Table)
+	}
+}
+
+func eEditor(c echo.Context) error {
 	idStr := c.QueryParams().Get("id")
 	id := models.ParseRecordID(idStr)
 	switch id.Table {
@@ -142,8 +248,8 @@ func edit(c echo.Context) error {
 }
 
 func editPage(c echo.Context, id *models.RecordID) error {
-	var page data.Page
-	page, err := (&page).FromID(*id)
+	var page *data.Page
+	page, err := data.FromID[data.Page](*id)
 	if err != nil {
 		pretty, err := json.Marshal(err.Error())
 		if err != nil {
@@ -153,13 +259,43 @@ func editPage(c echo.Context, id *models.RecordID) error {
 		return nil
 	}
 
-	// todo: make an editor
-	return Render(c, http.StatusOK, Editor(page.Block, page.ID))
+	return Render(c, http.StatusOK, PageEditor(page.Block, page.ID))
+}
+
+func savePage(c echo.Context, id *models.RecordID, content *data.Block) error {
+	var page *data.Page
+
+	page, err := data.FromID[data.Page](*id)
+	if err != nil {
+		pretty, err := json.Marshal(err.Error())
+		if err != nil {
+			return err
+		}
+		c.JSONBlob(http.StatusInternalServerError, pretty)
+		return nil
+	}
+
+	comp, err := content.ToComponent(0)
+	if err != nil {
+		Logger.Error().Err(err).Send()
+		return err
+	}
+
+	page.Block = *content
+	page, err = data.Update(page, *page.ID)
+	if err != nil {
+		Logger.Error().Err(err).Send()
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	page.Handler(comp)
+
+	return c.JSON(http.StatusOK, page)
 }
 
 func testDb(c echo.Context) error {
-	var page data.Page
-	page, err := (&page).FromID(page.NewRecordID("rootpage"))
+	var page *data.Page
+	page, err := data.FromID[data.Page](data.NewRecordID[data.Page]("rootpage"))
 	if err != nil {
 		pretty, err := json.Marshal(err.Error())
 		if err != nil {
@@ -169,7 +305,7 @@ func testDb(c echo.Context) error {
 		return nil
 	}
 
-	return Render(c, http.StatusOK, ShowPage(&page))
+	return Render(c, http.StatusOK, ShowPage(page))
 }
 
 func testDb2(c echo.Context) error {
@@ -192,5 +328,10 @@ func testDb2(c echo.Context) error {
 
 func ContentComponent(c data.Block) templ.Component {
 	comp, _ := c.ToComponent(0)
+	return comp
+}
+
+func EditorComponent(c data.Block) templ.Component {
+	comp, _ := c.EditorComponent(0)
 	return comp
 }

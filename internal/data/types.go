@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/Alan-Daniels/web/internal"
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
 	"github.com/surrealdb/surrealdb.go/pkg/models"
@@ -32,7 +33,10 @@ type Group struct {
 	g      *echo.Group      `json:"-"`
 }
 
+var components map[string]templ.Component
+
 func Init(e *echo.Echo) error {
+	components = make(map[string]templ.Component)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -94,8 +98,7 @@ type RecordID[T any] struct {
 	ID *models.RecordID `json:"id,omitempty"`
 }
 
-// static method
-func (r *RecordID[T]) NewRecordID(id string) models.RecordID {
+func NewRecordID[T any, K RecordID[T]](id string) models.RecordID {
 	return models.NewRecordID(typeName[T](), id)
 }
 
@@ -106,8 +109,7 @@ func (r *RecordID[T]) GetIDString() string {
 	return r.ID.String()
 }
 
-// static method
-func (*RecordID[T]) Insert(t *T) (*T, error) {
+func Insert[T any, K RecordID[T]](t *T) (*T, error) {
 	items, err := surrealdb.Insert[T](Database, models.Table(typeName[T]()), t)
 	if err != nil {
 		return nil, err
@@ -119,10 +121,13 @@ func (*RecordID[T]) Insert(t *T) (*T, error) {
 	return &item, err
 }
 
-// static method
-func (*RecordID[T]) FromID(id models.RecordID) (item T, err error) {
-	items, err := surrealdb.Select[T](Database, id)
-	item = *items
+func Update[T any, K RecordID[T]](t *T, id models.RecordID) (*T, error) {
+	item, err := surrealdb.Update[T](Database, id, t)
+	return item, err
+}
+
+func FromID[T any, K RecordID[T]](id models.RecordID) (item *T, err error) {
+	item, err = surrealdb.Select[T](Database, id)
 	return item, err
 }
 
