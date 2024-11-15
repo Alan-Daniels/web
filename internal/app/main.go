@@ -23,7 +23,12 @@ func Init() error {
 	app.Static("/assets", (RootDir)+"/assets")
 	app.File("/favicon.ico", (RootDir)+"/assets/favicon.ico")
 
-	err := data.Init(app)
+	group := app.Group("", middleware.RateLimiter(middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
+		Rate:      rate.Limit(2),
+		Burst:     5,
+		ExpiresIn: 3 * time.Minute,
+	})))
+	err := data.Init(group)
 	if err != nil {
 		Logger.Error().Err(err).Msg("Failed to build pages, only admin will be accessable")
 	}
@@ -37,12 +42,6 @@ func Init() error {
 	app.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
 	// TODO: CORS, CSRF
-
-	app.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
-		Rate:      rate.Limit(2),
-		Burst:     5,
-		ExpiresIn: 3 * time.Minute,
-	})))
 
 	// recover from panics
 	app.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{

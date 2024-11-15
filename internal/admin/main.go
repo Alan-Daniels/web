@@ -40,9 +40,8 @@ func Init(g *echo.Group) {
 	routes = make(map[string]*echo.Route)
 
 	g.GET("", admin)
-	g.GET("/db", testDb2)
 	g.GET("/mkpage", mkpage)
-	g.GET("/test", test)
+	g.GET("/preview", preview)
 
 	routes["editor"] = g.GET("/edit", eEditor)
 	routes["editor.save"] = g.POST("/edit", eEditorSave)
@@ -50,31 +49,51 @@ func Init(g *echo.Group) {
 	routes["editor.block.update"] = g.POST("/edit/block", eBlockUpdate)
 }
 
-func test(c echo.Context) error {
-	content := new(data.Block)
-	content.BlockName = "blocks.blockPadd"
-	content.BlockOps = make(map[string]interface{})
-	content.BlockOps["color"] = "red"
-	hello := new(data.Block)
-	hello.BlockName = "blocks.blockTest"
-	hello.BlockOps = make(map[string]interface{})
-	hello.BlockOps["name"] = "WORLD"
-	content.Children = append(content.Children, *hello)
-	chContent := new(data.Block)
-	chContent.BlockName = "blocks.blockPadd"
-	chContent.BlockOps = make(map[string]interface{})
-	chContent.BlockOps["color"] = "green"
-	chContent.Children = append(chContent.Children, *hello)
-	chContent.Children = append(chContent.Children, *hello)
-	content.Children = append(content.Children, *chContent)
+func preview(c echo.Context) error {
+	blockName := c.QueryParam("block")
 
-	component, err := content.ToComponent(0)
-	if err != nil {
-		Logger.Error().Err(err).Msg("failed to render component")
-		return err
+	block, ok := Blocks[blockName]
+	if !ok {
+		Logger.Warn().Msgf("cannot find block with name '%s'", blockName)
+		return c.JSON(http.StatusNotFound, fmt.Sprintf("not found '%s'", blockName))
 	}
 
-	return Render(c, http.StatusOK, component)
+	args, err := block.DefArgs()
+	if err != nil {
+		Logger.Err(err).Send()
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	testChild1 := new(data.Block)
+	testChild1.BlockName = "blocks.blockTest"
+	testChild1.BlockOps = map[string]interface{}{
+		"name": "test child 1",
+	}
+
+	testChild2 := new(data.Block)
+	testChild2.BlockName = "blocks.blockTest"
+	testChild2.BlockOps = map[string]interface{}{
+		"name": "test child 2",
+	}
+
+	testChild3 := new(data.Block)
+	testChild3.BlockName = "blocks.blockTest"
+	testChild3.BlockOps = map[string]interface{}{
+		"name": "test child 3",
+	}
+
+	bl := new(data.Block)
+	bl.BlockName = blockName
+	bl.BlockOps = *args
+	bl.Children = append(bl.Children, *testChild1, *testChild2, *testChild3)
+
+	comp, err := bl.ToComponent(0)
+	if err != nil {
+		Logger.Err(err).Send()
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return Render(c, http.StatusOK, Preview(comp))
 }
 
 func mkpage(c echo.Context) (err error) {
@@ -195,26 +214,17 @@ func eBlockUpdate(c echo.Context) error {
 	}
 
 	Logger.Debug().Any("block", block).Send()
+	bct := NewBlockCounter(0)
 
-	component, err := block.EditorComponent(0)
+	component, err := block.EditorComponent(0, EditBlockChildren(block, bct))
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to render component")
+
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	childStub := EditBlockChildren()
-
-	ctx := templ.WithChildren(c.Request().Context(), childStub)
-	buf := templ.GetBuffer()
-	defer templ.ReleaseBuffer(buf)
-
-	err = component.Render(ctx, buf)
-	if err != nil {
-		Logger.Error().Err(err).Msg("failed to render component")
-		return err
-	}
-
-	return c.HTML(http.StatusOK, buf.String())
+	return Render(c, http.StatusOK, component)
 }
 
 func eEditorSave(c echo.Context) error {
@@ -293,45 +303,12 @@ func savePage(c echo.Context, id *models.RecordID, content *data.Block) error {
 	return c.JSON(http.StatusOK, page)
 }
 
-func testDb(c echo.Context) error {
-	var page *data.Page
-	page, err := data.FromID[data.Page](data.NewRecordID[data.Page]("rootpage"))
-	if err != nil {
-		pretty, err := json.Marshal(err.Error())
-		if err != nil {
-			return err
-		}
-		c.JSONBlob(http.StatusInternalServerError, pretty)
-		return nil
-	}
-
-	return Render(c, http.StatusOK, ShowPage(page))
-}
-
-func testDb2(c echo.Context) error {
-	var page data.Page
-	pages, err := (&page).FromParentID(nil)
-
-	pretty, err := json.Marshal(pages)
-	if err != nil {
-		pretty, err := json.Marshal(err.Error())
-		if err != nil {
-			return err
-		}
-		c.JSONBlob(http.StatusInternalServerError, pretty)
-		return nil
-	}
-
-	c.JSONBlob(http.StatusInternalServerError, pretty)
-	return nil
-}
-
 func ContentComponent(c data.Block) templ.Component {
 	comp, _ := c.ToComponent(0)
 	return comp
 }
 
-func EditorComponent(c data.Block) templ.Component {
-	comp, _ := c.EditorComponent(0)
+func EditorComponent(c data.Block, child templ.Component) templ.Component {
+	comp, _ := c.EditorComponent(0, child)
 	return comp
 }

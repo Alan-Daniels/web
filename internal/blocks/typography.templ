@@ -1,0 +1,47 @@
+package blocks
+
+import (
+	"github.com/Alan-Daniels/web/internal/blocks/types"
+	"strings"
+)
+
+type TypographyArgs struct {
+	Text types.Text
+	Fg   types.ColorStyle
+}
+
+type TypographyTextArgs struct {
+	Text types.LongText
+	Fg   types.ColorStyle
+}
+
+templ heading(args TypographyArgs, _ []*templ.Component) {
+	<h1 class={ FG(args.Fg), "font-semibold text-2xl" }>{ string(args.Text) }</h1>
+}
+
+templ subheading(args TypographyArgs, _ []*templ.Component) {
+	<h2 class={ FG(args.Fg), "font-semibold text-xl" }>{ string(args.Text) }</h2>
+}
+
+templ text(args TypographyArgs, _ []*templ.Component) {
+	<p class={ FG(args.Fg), "font-normal text-base" }>{ string(args.Text) }</p>
+}
+
+templ textblock(args TypographyTextArgs, _ []*templ.Component) {
+	{{ parts := strings.Split(string(args.Text), "\n") }}
+	<p class={ FG(args.Fg), "font-normal text-base" }>
+		for i,part := range parts {
+			if i > 0 {
+				<br/>
+			}
+			{ part }
+		}
+	</p>
+}
+
+func init() {
+	registerBlock(heading)
+	registerBlock(subheading)
+	registerBlock(text)
+	registerBlock(textblock)
+}

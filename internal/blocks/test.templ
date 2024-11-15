@@ -1,29 +1,33 @@
 package blocks
 
+import "github.com/Alan-Daniels/web/internal/blocks/types"
+
 css hello() {
 	background-color: teal;
 }
 
-templ blockTest(args BlockArgsTest) {
-	<p class={ hello() }>Hello { args.Name }!</p>
+templ blockTest(args BlockArgsTest, children []*templ.Component) {
+	<p class={ hello() }>Hello { string(args.Name) }!</p>
 }
 
 type BlockArgsTest struct {
-	Name string `json:"name"`
+	Name types.Text `json:"name"`
 }
 
-css padd(color string) {
+css padd(color types.ColorStyle) {
 	padding: 1em;
 	background-color: { color };
 }
 
 type BlockArgsPadd struct {
-	Color string `json:"color"`
+	Color types.ColorStyle `json:"color"`
 }
 
-templ blockPadd(args BlockArgsPadd) {
+templ blockPadd(args BlockArgsPadd, children []*templ.Component) {
 	<div class={ padd(args.Color) }>
-		{ children... }
+		for _,c := range children {
+			@(*c)
+		}
 	</div>
 }
 

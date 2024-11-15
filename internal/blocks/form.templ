@@ -6,14 +6,6 @@ import (
 	"reflect"
 )
 
-templ Merge(parent templ.Component, children []templ.Component) {
-	@parent {
-		for _,child := range children {
-			@child
-		}
-	}
-}
-
 var InlineJsOnce = templ.NewOnceHandle()
 
 //go:embed form.js
@@ -25,15 +17,6 @@ templ InlineJs() {
 	}
 }
 
-templ (bl *_Block[T]) formField(field reflect.StructField, value reflect.Value, blockId, parentBlockId int) {
-	{{ inputName := fmt.Sprintf("%d.%s", blockId, field.Name) }}
-	{{ id := fmt.Sprint(blockId) }}
-	{{ parent := fmt.Sprint(parentBlockId) }}
-	<label for={ inputName }>{ field.Name }</label>
-	<input type="text" id={ inputName } name={ field.Name } class="form-field" value={ value.String() } data-id={ id } data-parent={ parent }/>
-	// todo: make a set of supported types, and a specific field for each
-}
-
 templ (bl *_Block[T]) Form(args T, blockId, parentBlockId int) {
 	{{ ref := reflect.ValueOf(args) }}
 	{{ t := ref.Type() }}
@@ -42,14 +25,15 @@ templ (bl *_Block[T]) Form(args T, blockId, parentBlockId int) {
 	{{ parent := fmt.Sprint(parentBlockId) }}
 	{{ blockTarget := fmt.Sprintf("block~%d", blockId) }}
 	{{ target := fmt.Sprintf("block-form~%d", blockId) }}
+	{{ formId := fmt.Sprintf("block-form~form-%d", blockId) }}
 	<div id={ target }>
 		<h6>
-			Block #{ fmt.Sprintf("%d (%s)",blockId, bl.name) }
+			Block #{ fmt.Sprintf("%d (%s)",blockId, bl.Name) }
 			<button data-id={ id } class="block-form~delete bg-zinc-100 hover:bg-zinc-200 active:bg-zinc-300 rounded shadow px-1 ml-1" data-form-target={ target } data-block-target={ blockTarget }>-</button>
 		</h6>
-		<form onsubmit="return false;" class="block-form" data-parent={ parent } data-name={ bl.name } data-block-target={ blockTarget } data-children-selector={ fmt.Sprintf("form.block-form[data-parent=\"%d\"]", blockId) }>
+		<form id={ formId } onsubmit="return false;" class="block-form" data-parent={ parent } data-name={ bl.Name } data-block-target={ blockTarget } data-children-selector={ fmt.Sprintf("form.block-form[data-parent=\"%d\"]", blockId) }>
 			for i := 0; i< fieldLen; i++ {
-				@bl.formField(t.Field(i), ref.Field(i), blockId, parentBlockId)
+				@bl.FormField(t.Field(i), ref.Field(i), blockId, parentBlockId)
 			}
 		</form>
 		{{ childArea := fmt.Sprintf("block-form~children-%d", blockId) }}

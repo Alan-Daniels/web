@@ -35,12 +35,12 @@ type Group struct {
 
 var components map[string]templ.Component
 
-func Init(e *echo.Echo) error {
+func Init(e *echo.Group) error {
 	components = make(map[string]templ.Component)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	(&Group{}).Init(&Group{g: e.Group("")}, ctx)
+	(&Group{}).Init(&Group{g: e}, ctx)
 
 	return ctx.Err()
 }

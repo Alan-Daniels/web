@@ -1,0 +1,31 @@
+package blocks
+
+import "fmt"
+
+var BrokenBlock _Block[BrokenArgs]
+
+type BrokenArgs struct {
+	Name string
+	Err  string
+	Args map[string]interface{}
+}
+
+templ brokenBlock(args BrokenArgs, children []*templ.Component) {
+	<div class="block bg-red-500 border border-rose-400 p-2">
+		<h5 class="font-semibold">Failed to render this block, below are some details.</h5>
+		<p>Block Name: { args.Name }</p>
+		<p>Error: { args.Err }</p>
+		<p>Args: { fmt.Sprintf("%v", args.Args) }</p>
+		<p>Children:</p>
+		<div class="bg-white border border-stone-100">
+			for _,c := range children {
+				@(*c)
+			}
+		</div>
+	</div>
+}
+
+func init() {
+	BrokenBlock.Comp = brokenBlock
+	BrokenBlock.Name = "brokenBlock"
+}

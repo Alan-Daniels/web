@@ -1,18 +1,37 @@
 document.addEventListener("DOMContentLoaded", function () {
   const log = (..._data) => {
-    //console.log(..._data);
+    console.log(..._data);
   };
 
   const urls = document.getElementById("editor~urls").dataset;
   const newBlockModal = document.getElementById("new-block~modal");
 
   const getFormData = (formElem, deep = true) => {
+    log(formElem);
     const blockName = formElem.dataset.name;
     const blockForm = new FormData(formElem);
+
+    const fillOpts = (itm) => {
+      return (v, k) => {
+        if (!k) {
+          return;
+        }
+        if (k.includes(".")) {
+          const pts = k.split(".", 2);
+          const nk = pts[0];
+          if (!itm[nk]) {
+            itm[nk] = {};
+          }
+          log(k, v, pts)
+          fillOpts(itm[nk])(v, pts[1]);
+        } else {
+          itm[k] = v;
+        }
+      };
+    };
+
     var blockOpts = {};
-    blockForm.forEach((v, k) => {
-      blockOpts[k] = v;
-    });
+    blockForm.forEach(fillOpts(blockOpts));
     var ret = {
       name: blockName,
       opts: blockOpts,
@@ -20,8 +39,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (deep) {
       ret.children = Array.from(
         formElem.parentNode.querySelectorAll(formElem.dataset.childrenSelector),
-      ).map(getFormData);
+      );
+      log("deep", formElem.dataset.childrenSelector, ret.children);
+      ret.children = ret.children.map((c) => getFormData(c, true));
     }
+    log(ret);
     return ret;
   };
 
@@ -100,10 +122,10 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(console.error);
     };
     const listenFormChanged = (input) => {
-      input.addEventListener("change", (e) => {
-        const form = e.target.parentElement;
+      input.addEventListener("input", (e) => {
+        const id = e.target.dataset.id;
+        const form = document.getElementById(`block-form~form-${id}`);
         const data = getFormData(form, false);
-        const id = form.dataset.id;
         const target = document.getElementById(form.dataset.blockTarget);
         doFormChanged(target, data, id);
       });

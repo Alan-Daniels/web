@@ -1,0 +1,102 @@
+package types
+
+import (
+	"fmt"
+	"reflect"
+)
+
+//--
+templ DefaultFormField(field reflect.StructField, value reflect.Value, blockId, parentBlockId int) {
+	{{ inputId := fmt.Sprintf("%d.%s", blockId, field.Name) }}
+	{{ id := fmt.Sprint(blockId) }}
+	{{ parent := fmt.Sprint(parentBlockId) }}
+	<div class="block">
+		<label for={ inputId }>{ field.Name }</label>
+		<input type="text" id={ inputId } name={ field.Name } class="form-field" value={ value.String() } data-id={ id } data-parent={ parent }/>
+	</div>
+}
+
+//--
+
+type Text string
+
+func (Text) Default() Text {
+	return Text("\\TEXT\\")
+}
+
+//--
+
+type LongText string
+
+func (LongText) Default() LongText {
+	return LongText("\\LONG\nTEXT\\")
+}
+
+templ (t LongText) FormField(field reflect.StructField, blockId, parentBlockId int) {
+	{{ inputId := fmt.Sprintf("%d.%s", blockId, field.Name) }}
+	{{ id := fmt.Sprint(blockId) }}
+	{{ parent := fmt.Sprint(parentBlockId) }}
+	<div class="block">
+		<label for={ inputId }>{ field.Name }</label>
+		<textarea name={ field.Name } id={ inputId } cols="30" rows="10" class="form-field" data-id={ id } data-parent={ parent }>{ string(t) }</textarea>
+	</div>
+}
+
+//--
+
+type ColorStyle string
+
+func (ColorStyle) Default() ColorStyle {
+	return ColorStyle("#12FE65")
+}
+
+templ (c ColorStyle) FormField(field reflect.StructField, blockId, parentBlockId int) {
+	{{ inputId := fmt.Sprintf("%d.%s", blockId, field.Name) }}
+	{{ id := fmt.Sprint(blockId) }}
+	{{ parent := fmt.Sprint(parentBlockId) }}
+	<div class="block">
+		<label for={ inputId }>{ field.Name }</label>
+		<input type="color" id={ inputId } class="block form-field" name={ field.Name } value={ string(c) } data-id={ id } data-parent={ parent }/>
+	</div>
+}
+
+//--
+templ selectOpts(needle string, haystack []string) {
+	for _,itm := range haystack {
+		if itm == needle {
+			<option value={ itm } selected>{ itm }</option>
+		} else {
+			<option value={ itm }>{ itm }</option>
+		}
+	}
+}
+
+//--
+
+type Url string
+
+func (Url) Default() Url {
+	return Url("/assets/profile.jpg")
+}
+
+//--
+
+type SizeClass string
+
+func (SizeClass) Default() SizeClass {
+	return SizeClass("base")
+}
+
+var sizeOpts = []string{"sm", "md", "lg", "xl", "2xl"}
+
+templ (s SizeClass) FormField(field reflect.StructField, blockId, parentBlockId int) {
+	{{ inputId := fmt.Sprintf("%d.%s", blockId, field.Name) }}
+	{{ id := fmt.Sprint(blockId) }}
+	{{ parent := fmt.Sprint(parentBlockId) }}
+	<div class="block">
+		<label for={ inputId }>{ field.Name }</label>
+		<select name={ field.Name } class="form-field" id={ inputId } data-id={ id } data-parent={ parent }>
+			@selectOpts(string(s), sizeOpts)
+		</select>
+	</div>
+}

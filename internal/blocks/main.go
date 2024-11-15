@@ -7,27 +7,28 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/Alan-Daniels/web/internal/blocks/types"
 	"github.com/a-h/templ"
 )
 
 type Block interface {
-	Component(map[string]interface{}) (templ.Component, error)
+	Component(map[string]interface{}, []*templ.Component) (templ.Component, error)
 	Editor(map[string]interface{}, int, int) (templ.Component, error)
 	DefArgs() (*map[string]interface{}, error)
 }
 type Blocks map[string]Block
 
 type _Block[T any] struct {
-	comp func(T) templ.Component
-	name string
+	Comp func(T, []*templ.Component) templ.Component
+	Name string
 }
 
-func (bl *_Block[T]) Component(args map[string]interface{}) (templ.Component, error) {
+func (bl *_Block[T]) Component(args map[string]interface{}, children []*templ.Component) (templ.Component, error) {
 	t, err := bl.marshal(args)
 	if err != nil {
 		return nil, err
 	}
-	return bl.comp(*t), nil
+	return bl.Comp(*t, children), nil
 }
 
 func (bl *_Block[T]) Editor(args map[string]interface{}, blockId, parentBlockId int) (templ.Component, error) {
@@ -41,7 +42,32 @@ func (bl *_Block[T]) Editor(args map[string]interface{}, blockId, parentBlockId 
 
 func (bl *_Block[T]) DefArgs() (*map[string]interface{}, error) {
 	a := new(T)
+
+	ref := reflect.TypeFor[T]()
+	refvalue := reflect.ValueOf(a)
+	fieldLen := ref.NumField()
+
+	for i := 0; i < fieldLen; i++ {
+		fieldvalue := refvalue.Elem().Field(i)
+		def, ok := fieldvalue.Type().MethodByName("Default")
+		if !ok {
+			continue
+		}
+		ret := def.Func.Call([]reflect.Value{fieldvalue})
+		fieldvalue.Set(ret[0])
+	}
+
 	return bl.unmarshal(a)
+}
+
+func (bl *_Block[T]) FormField(field reflect.StructField, value reflect.Value, blockId, parentBlockId int) templ.Component {
+	def, ok := value.Type().MethodByName("FormField")
+	if !ok {
+		return types.DefaultFormField(field, value, blockId, parentBlockId)
+	}
+	ret := def.Func.Call([]reflect.Value{value, reflect.ValueOf(field), reflect.ValueOf(blockId), reflect.ValueOf(parentBlockId)})[0]
+
+	return ret.Interface().(templ.Component)
 }
 
 func (bl *_Block[T]) marshal(args map[string]interface{}) (*T, error) {
@@ -88,14 +114,14 @@ func Init() *Blocks {
 	return &blocks
 }
 
-func registerBlock[T any](comp func(T) templ.Component) {
+func registerBlock[T any](comp func(T, []*templ.Component) templ.Component) {
 	block := new(_Block[T])
-	block.comp = comp
+	block.Comp = comp
 
 	name := runtime.FuncForPC(reflect.ValueOf(comp).Pointer()).Name()
 	namep := strings.Split(name, "/")
 	name = namep[len(namep)-1]
-	block.name = name
+	block.Name = name
 	if blocks == nil {
 		blocks = make(Blocks)
 	}

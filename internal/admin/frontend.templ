@@ -147,6 +147,19 @@ css cssPage() {
 	background-color: #9500A511;
 }
 
+templ Preview(comp templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + "indev" }/>
+		</head>
+		<body>
+			@comp
+		</body>
+	</html>
+}
+
 templ ShowPage(pg *data.Page) {
 	<div class={ cssPage() }>
 		<h4>
@@ -208,22 +221,18 @@ templ EditBlockForm(b data.Block, bId *BlockCounter, parent int) {
 	}
 }
 
-templ EditBlockChildren() {
+templ EditBlockChildren(b data.Block, bId *BlockCounter) {
 	<div class="block~children">
-		{ children... }
+		for _, child := range b.Children {
+			@EditBlock(child, bId)
+		}
 	</div>
 }
 
 templ EditBlock(b data.Block, bId *BlockCounter) {
 	{{ id := bId.Next() }}
 	<div id={ fmt.Sprintf("block~%d", id) } data-children-selector=".block\~children" data-id={ fmt.Sprint(id) }>
-		@EditorComponent(b) {
-			@EditBlockChildren() {
-				for _, child := range b.Children {
-					@EditBlock(child, bId)
-				}
-			}
-		}
+		@EditorComponent(b, EditBlockChildren(b, bId))
 	</div>
 }
 
