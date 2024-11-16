@@ -1,0 +1,31 @@
+package blocks
+
+type RootArgs struct{}
+
+templ root(args RootArgs, children []*templ.Component) {
+	for _, c := range children {
+		@(*c)
+	}
+}
+
+templ RootPage(args RootArgs, children []*templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			// TODO: get title from
+			<title>Alan Daniels</title>
+			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + "indev" }/>
+		</head>
+		<body>
+			for _, c := range children {
+				@(*c)
+			}
+		</body>
+	</html>
+}
+
+func init() {
+	registerBlock(root)
+	registerBlock(RootPage)
+}

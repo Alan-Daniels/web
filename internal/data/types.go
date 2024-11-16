@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/Alan-Daniels/web/internal"
+	"github.com/Alan-Daniels/web/internal/blocks"
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
@@ -34,6 +35,7 @@ type Group struct {
 }
 
 var components map[string]templ.Component
+var rootArgs blocks.RootArgs // TODO: hydrate args from database
 
 func Init(e *echo.Group) error {
 	components = make(map[string]templ.Component)

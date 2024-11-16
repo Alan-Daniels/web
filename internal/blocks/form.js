@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (!itm[nk]) {
             itm[nk] = {};
           }
-          log(k, v, pts)
+          log(k, v, pts);
           fillOpts(itm[nk])(v, pts[1]);
         } else {
           itm[k] = v;
@@ -234,4 +234,9 @@ document.addEventListener("DOMContentLoaded", function () {
   formEvents(document);
   modalEvents();
   pageEvents();
+
+  document.getElementById("block-form~1").querySelector("h6").remove();
+  document
+    .getElementById("block-form~form-1")
+    .childNodes.forEach((el) => el.remove());
 });

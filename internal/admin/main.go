@@ -269,7 +269,9 @@ func editPage(c echo.Context, id *models.RecordID) error {
 		return nil
 	}
 
-	return Render(c, http.StatusOK, PageEditor(page.Block, page.ID))
+	block := data.EnsureBlockRoot(page.Block)
+
+	return Render(c, http.StatusOK, PageEditor(block, page.ID))
 }
 
 func savePage(c echo.Context, id *models.RecordID, content *data.Block) error {

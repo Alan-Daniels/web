@@ -65,3 +65,17 @@ func (c *Block) component(depth int, children []*templ.Component) (comp templ.Co
 func (c *Block) EditorComponent(depth int, child templ.Component) (comp templ.Component, err error) {
 	return c.component(depth, []*templ.Component{&child})
 }
+
+func EnsureBlockRoot(b Block) Block {
+	rootName := "blocks.root"
+	if b.BlockName == rootName {
+		return b
+	} else {
+		Logger.Warn().Any("block", b).Msg("gotten a non-root block as a root block")
+		return Block{
+			BlockName: rootName,
+			BlockOps:  map[string]interface{}{},
+			Children:  []Block{b},
+		}
+	}
+}

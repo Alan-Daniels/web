@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	. "github.com/Alan-Daniels/web/internal"
+	"github.com/Alan-Daniels/web/internal/blocks"
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 )
@@ -23,7 +24,8 @@ func (r *Page) Handler(comp templ.Component) func(c echo.Context) error {
 	name := r.GetIDString()
 	components[name] = comp
 	return func(c echo.Context) error {
-		return Render(c, http.StatusOK, components[name])
+		cmp := components[name]
+		return Render(c, http.StatusOK, blocks.RootPage(rootArgs, []*templ.Component{&cmp}))
 	}
 }
 
