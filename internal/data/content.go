@@ -11,6 +11,23 @@ import (
 
 var maxDepth = 1024
 
+func (c *RootBlock) ToComponent() (comp templ.Component, err error) {
+	children := make([]*templ.Component, len(c.Children))
+	if len(c.Children) > 0 {
+		errs := make([]error, 0)
+		for i := range c.Children {
+			child, nerr := (c.Children[i]).ToComponent(1)
+			errs = append(errs, nerr)
+			children[i] = &child
+		}
+		if len(errs) > 0 {
+			err = errors.Join(errs...)
+		}
+	}
+	comp = blocks.Merge(children)
+	return comp, err
+}
+
 func (c *Block) ToComponent(depth int) (comp templ.Component, err error) {
 	children := make([]*templ.Component, len(c.Children))
 	if len(c.Children) > 0 {
@@ -66,16 +83,16 @@ func (c *Block) EditorComponent(depth int, child templ.Component) (comp templ.Co
 	return c.component(depth, []*templ.Component{&child})
 }
 
-func EnsureBlockRoot(b Block) Block {
+func EnsureBlockRoot(b Block) RootBlock {
 	rootName := "blocks.root"
-	if b.BlockName == rootName {
-		return b
+	if b.BlockName == rootName || b.BlockName == "" {
+		return RootBlock{
+			Children: b.Children,
+		}
 	} else {
 		Logger.Warn().Any("block", b).Msg("gotten a non-root block as a root block")
-		return Block{
-			BlockName: rootName,
-			BlockOps:  map[string]interface{}{},
-			Children:  []Block{b},
+		return RootBlock{
+			Children: []Block{b},
 		}
 	}
 }

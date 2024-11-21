@@ -17,7 +17,7 @@ templ InlineJs() {
 	}
 }
 
-templ (bl *_Block[T]) Form(args T, blockId, parentBlockId int) {
+templ (bl *BlockT[T]) Form(args T, blockId, parentBlockId int) {
 	{{ ref := reflect.ValueOf(args) }}
 	{{ t := ref.Type() }}
 	{{ fieldLen := ref.NumField() }}

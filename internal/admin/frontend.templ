@@ -174,7 +174,11 @@ templ ShowPage(pg *data.Page) {
 		<p>name: { pg.Name }</p>
 		<div>
 			<p>content: </p>
-			@ContentComponent(pg.Block)
+			{{ block := data.EnsureBlockRoot(pg.Block) }}
+			for _,v := range block.Children {
+				{{ comp, _ := v.ToComponent(0) }}
+				@comp
+			}
 		</div>
 	</div>
 }
@@ -183,17 +187,17 @@ templ EditorSaveBtn(id *models.RecordID) {
 	<button id="editor~save" class="text-sm p-1 m-1 bg-zinc-800 text-purple-400 hover:text-purple-300 rounded" data-id={ id.String() }>Save</button>
 }
 
-templ PageEditor(content data.Block, id *models.RecordID) {
+templ PageEditor(content data.RootBlock, id *models.RecordID) {
 	{{ bct := NewBlockCounter(0) }}
 	@Page([]templ.Component{EditorSaveBtn(id)}) {
 		<div class="inline-flex w-[100%]">
 			<div class="flex-grow">
-				@EditBlock(content, bct)
+				@EditRootBlock(content, bct)
 			</div>
 			<div class="bg-zinc-600 order-first">
 				{{ ct := bct.Reset() }}
 				<input type="hidden" name="block-count" id="block-count" value={ fmt.Sprint(ct) }/>
-				@EditBlockForm(content, bct, 0)
+				@EditRootBlockForm(content, bct, 0)
 			</div>
 		</div>
 	}
@@ -211,6 +215,17 @@ templ TemplEditor(content data.Block, id, parent int) {
 	</template>
 }
 
+templ EditRootBlockForm(r data.RootBlock, bId *BlockCounter, parent int) {
+	{{ b := blocks.BlockT[blocks.RootArgs]{} }}
+	{{ id := bId.Next() }}
+	{{ form := b.Form(r.Args, id, parent) }}
+	@form {
+		for _, child := range r.Children {
+			@EditBlockForm(child, bId, id)
+		}
+	}
+}
+
 templ EditBlockForm(b data.Block, bId *BlockCounter, parent int) {
 	{{ id := bId.Next() }}
 	{{ form, _ := b.Form(id, parent) }}
@@ -221,18 +236,30 @@ templ EditBlockForm(b data.Block, bId *BlockCounter, parent int) {
 	}
 }
 
-templ EditBlockChildren(b data.Block, bId *BlockCounter) {
+templ EditBlockChildren(b []data.Block, bId *BlockCounter) {
 	<div class="block~children">
-		for _, child := range b.Children {
+		for _, child := range b {
 			@EditBlock(child, bId)
 		}
+	</div>
+}
+
+templ EditRootBlock(b data.RootBlock, bId *BlockCounter) {
+	{{ id := bId.Next() }}
+	<div id={ fmt.Sprintf("block~%d", id) } data-children-selector=".block\~children" data-id={ fmt.Sprint(id) }>
+		// This poses a bit of a problem between what is shown in the editor and what actually renders.
+		// e.g. layoutLeftMainStack & layoutRightMainStack dont work in the editor
+		{{ child := EditBlockChildren(b.Children, bId) }}
+		{{ comp := blocks.RootPage(b.Args, child) }}
+		@comp
 	</div>
 }
 
 templ EditBlock(b data.Block, bId *BlockCounter) {
 	{{ id := bId.Next() }}
 	<div id={ fmt.Sprintf("block~%d", id) } data-children-selector=".block\~children" data-id={ fmt.Sprint(id) }>
-		@EditorComponent(b, EditBlockChildren(b, bId))
+		{{ comp, _ := b.EditorComponent(0, EditBlockChildren(b.Children, bId)) }}
+		@comp
 	</div>
 }
 

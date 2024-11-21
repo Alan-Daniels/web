@@ -1,19 +1,18 @@
 package blocks
 
-type BlockArgsLayouts struct {
-}
+type BlockArgsLayouts struct{}
 
 templ layoutLeftMainStack(args BlockArgsLayouts, children []*templ.Component) {
-	<div class="flex">
+	<div class="inline-flex flex-row">
 		if len(children) > 0 {
 			{{ c := children[0] }}
 			{{ rest := children[1:] }}
-			@(*c)
-			<div class="flex flex-col">
+			<div class="min-w-[30%]">
+				@(*c)
+			</div>
+			<div class="flex flex-col min-w-[30%]">
 				for _, c := range rest {
-					<div class="flex-shrink-0 flex-col">
-						@(*c)
-					</div>
+					@(*c)
 				}
 			</div>
 		}
@@ -21,18 +20,18 @@ templ layoutLeftMainStack(args BlockArgsLayouts, children []*templ.Component) {
 }
 
 templ layoutRightMainStack(args BlockArgsLayouts, children []*templ.Component) {
-	<div class="flex">
+	<div class="inline-flex flex-row">
 		if len(children) > 0 {
 			{{ c := children[0] }}
 			{{ rest := children[1:] }}
-			<div class="flex flex-col">
+			<div class="flex flex-col min-w-[30%]">
 				for _, c := range rest {
-					<div class="flex-shrink-0 flex-col">
-						@(*c)
-					</div>
+					@(*c)
 				}
 			</div>
-			@(*c)
+			<div class="min-w-[30%]">
+				@(*c)
+			</div>
 		}
 	</div>
 }

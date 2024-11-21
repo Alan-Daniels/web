@@ -8,7 +8,6 @@ import (
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/data"
-	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
 	"github.com/surrealdb/surrealdb.go/pkg/models"
@@ -35,6 +34,7 @@ func NewBlockCounter(start int) *BlockCounter {
 }
 
 var routes map[string]*echo.Route
+var g *echo.Group
 
 func Init(g *echo.Group) {
 	routes = make(map[string]*echo.Route)
@@ -216,7 +216,7 @@ func eBlockUpdate(c echo.Context) error {
 	Logger.Debug().Any("block", block).Send()
 	bct := NewBlockCounter(0)
 
-	component, err := block.EditorComponent(0, EditBlockChildren(block, bct))
+	component, err := block.EditorComponent(0, EditBlockChildren(block.Children, bct))
 	if err != nil {
 		Logger.Error().Err(err).Msg("failed to render component")
 
@@ -238,9 +238,11 @@ func eEditorSave(c echo.Context) error {
 		return err
 	}
 
+	root := data.EnsureBlockRoot(block)
+
 	switch id.Table {
 	case "Page":
-		return savePage(c, id, &block)
+		return savePage(c, id, root)
 	default:
 		return fmt.Errorf("Could not edit Object of type %s", id.Table)
 	}
@@ -274,7 +276,7 @@ func editPage(c echo.Context, id *models.RecordID) error {
 	return Render(c, http.StatusOK, PageEditor(block, page.ID))
 }
 
-func savePage(c echo.Context, id *models.RecordID, content *data.Block) error {
+func savePage(c echo.Context, id *models.RecordID, content data.RootBlock) error {
 	var page *data.Page
 
 	page, err := data.FromID[data.Page](*id)
@@ -287,30 +289,23 @@ func savePage(c echo.Context, id *models.RecordID, content *data.Block) error {
 		return nil
 	}
 
-	comp, err := content.ToComponent(0)
+	comp, err := content.ToComponent()
 	if err != nil {
-		Logger.Error().Err(err).Send()
+		Logger.Error().Err(err).Msg("to component error")
 		return err
 	}
 
-	page.Block = *content
+	page.Block = data.Block{
+		Children:  content.Children,
+		BlockName: "blocks.root",
+	}
 	page, err = data.Update(page, *page.ID)
 	if err != nil {
-		Logger.Error().Err(err).Send()
+		Logger.Error().Err(err).Msg("DB update error")
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	page.Handler(comp)
+	page.RInit(c, comp)
 
 	return c.JSON(http.StatusOK, page)
-}
-
-func ContentComponent(c data.Block) templ.Component {
-	comp, _ := c.ToComponent(0)
-	return comp
-}
-
-func EditorComponent(c data.Block, child templ.Component) templ.Component {
-	comp, _ := c.EditorComponent(0, child)
-	return comp
 }

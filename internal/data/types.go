@@ -61,6 +61,11 @@ type WildcardRoute struct {
 
 // --
 
+type RootBlock struct {
+	Children []Block
+	Args     blocks.RootArgs
+}
+
 type Block struct {
 	Children  []Block                `json:"children,omitempty"`
 	BlockName string                 `json:"name"`

@@ -2,30 +2,27 @@ package blocks
 
 type RootArgs struct{}
 
-templ root(args RootArgs, children []*templ.Component) {
+templ root(_ RootArgs, children []*templ.Component) {
+	@Merge(children)
+}
+
+templ Merge(children []*templ.Component) {
 	for _, c := range children {
 		@(*c)
 	}
 }
 
-templ RootPage(args RootArgs, children []*templ.Component) {
+templ RootPage(_ RootArgs, child templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
-			// TODO: get title from
+			// TODO: get title from args
 			<title>Alan Daniels</title>
 			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + "indev" }/>
 		</head>
 		<body>
-			for _, c := range children {
-				@(*c)
-			}
+			@child
 		</body>
 	</html>
-}
-
-func init() {
-	registerBlock(root)
-	registerBlock(RootPage)
 }

@@ -18,12 +18,12 @@ type Block interface {
 }
 type Blocks map[string]Block
 
-type _Block[T any] struct {
+type BlockT[T any] struct {
 	Comp func(T, []*templ.Component) templ.Component
 	Name string
 }
 
-func (bl *_Block[T]) Component(args map[string]interface{}, children []*templ.Component) (templ.Component, error) {
+func (bl *BlockT[T]) Component(args map[string]interface{}, children []*templ.Component) (templ.Component, error) {
 	t, err := bl.marshal(args)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (bl *_Block[T]) Component(args map[string]interface{}, children []*templ.Co
 	return bl.Comp(*t, children), nil
 }
 
-func (bl *_Block[T]) Editor(args map[string]interface{}, blockId, parentBlockId int) (templ.Component, error) {
+func (bl *BlockT[T]) Editor(args map[string]interface{}, blockId, parentBlockId int) (templ.Component, error) {
 	t, err := bl.marshal(args)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (bl *_Block[T]) Editor(args map[string]interface{}, blockId, parentBlockId 
 	return form, nil
 }
 
-func (bl *_Block[T]) DefArgs() (*map[string]interface{}, error) {
+func (bl *BlockT[T]) DefArgs() (*map[string]interface{}, error) {
 	a := new(T)
 
 	ref := reflect.TypeFor[T]()
@@ -60,7 +60,7 @@ func (bl *_Block[T]) DefArgs() (*map[string]interface{}, error) {
 	return bl.unmarshal(a)
 }
 
-func (bl *_Block[T]) FormField(field reflect.StructField, value reflect.Value, blockId, parentBlockId int) templ.Component {
+func (bl *BlockT[T]) FormField(field reflect.StructField, value reflect.Value, blockId, parentBlockId int) templ.Component {
 	def, ok := value.Type().MethodByName("FormField")
 	if !ok {
 		return types.DefaultFormField(field, value, blockId, parentBlockId)
@@ -70,7 +70,7 @@ func (bl *_Block[T]) FormField(field reflect.StructField, value reflect.Value, b
 	return ret.Interface().(templ.Component)
 }
 
-func (bl *_Block[T]) marshal(args map[string]interface{}) (*T, error) {
+func (bl *BlockT[T]) marshal(args map[string]interface{}) (*T, error) {
 	t := new(T)
 
 	var jsonBytes []byte
@@ -89,7 +89,7 @@ func (bl *_Block[T]) marshal(args map[string]interface{}) (*T, error) {
 	return t, nil
 }
 
-func (bl *_Block[T]) unmarshal(args *T) (*map[string]interface{}, error) {
+func (bl *BlockT[T]) unmarshal(args *T) (*map[string]interface{}, error) {
 	t := new(map[string]interface{})
 
 	var jsonBytes []byte
@@ -115,7 +115,7 @@ func Init() *Blocks {
 }
 
 func registerBlock[T any](comp func(T, []*templ.Component) templ.Component) {
-	block := new(_Block[T])
+	block := new(BlockT[T])
 	block.Comp = comp
 
 	name := runtime.FuncForPC(reflect.ValueOf(comp).Pointer()).Name()
