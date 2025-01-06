@@ -1,4 +1,8 @@
-flake: {pkgs, ...}: let
+flake: {
+  pkgs,
+  config,
+  ...
+}: let
 in {
   imports = [
     ./hardware-configuration.nix
@@ -11,7 +15,7 @@ in {
   in {
     # following configuration is added only when building VM with build-vm
     virtualisation = {
-      memorySize = 512; # Use 0.5GB memory.
+      memorySize = 2048;
       cores = 1;
       diskImage = null; # don't save anything between boots
       forwardPorts = [
@@ -51,8 +55,11 @@ in {
     enable = true;
     instances = {
       "localhost" = {
-        port = 8080;
         disableSSL = true;
+        server = {
+          port = 8080;
+        };
+        goaccess.enable = false;
       };
     };
   };
