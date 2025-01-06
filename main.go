@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"net/http"
@@ -10,13 +9,13 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/time/rate"
 
 	"github.com/rs/zerolog"
+	"gopkg.in/yaml.v2"
 
 	. "github.com/Alan-Daniels/web/internal"
 	"github.com/Alan-Daniels/web/internal/blog"
@@ -24,21 +23,54 @@ import (
 	"github.com/Alan-Daniels/web/internal/pages"
 )
 
+type Config struct {
+	Server struct {
+		Port     string `yaml:"port" envconfig:"SERVER_PORT"`
+		HostName string `yaml:"hostname" envconfig:"SERVER_HOSTNAME"`
+	} `yaml:"server"`
+}
+
+func NewConfig(file string) (*Config, error) {
+	cfg := new(Config)
+
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	decoder := yaml.NewDecoder(f)
+	err = decoder.Decode(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
 func main() {
-	webroot := flag.String("root", ".", "where the files be ;)")
-	logdir := flag.String("logdir", ".", "where to put logs")
-	port := flag.String("port", "8080", "port to listen on")
-	metricsPort := flag.String("metrics", "", "metrics port, default to no metrics")
-	testtag := flag.String("tag", "notest", "testing tag to use")
+	staticDir := flag.String("static", ".", "where static files & default files are")
+	//stateDir := flag.String("state", "./tmp", "where generated files & content files are")
+	configFile := flag.String("config", "./default.yml", "see config.Init()")
 	flag.Parse()
 
-	TestTag = *testtag
+	config, err := NewConfig(*configFile)
+	if err != nil {
+		panic(err)
+	}
+
+	//webroot := flag.String("root", ".", "where the files be ;)")
+	//logdir := flag.String("logdir", ".", "where to put logs")
+	//port := flag.String("port", "8080", "port to listen on")
+	//metricsPort := flag.String("metrics", "", "metrics port, default to no metrics")
+	//testtag := flag.String("tag", "notest", "testing tag to use")
+	//flag.Parse()
+
+	//TestTag = *testtag
 
 	app := echo.New()
 	app.IPExtractor = echo.ExtractIPFromXFFHeader()
 
-	app.Static("/assets", (*webroot)+"/assets")
-	app.File("/favicon.ico", (*webroot)+"/assets/favicon.ico")
+	app.Static("/assets", (*staticDir)+"/assets")
+	app.File("/favicon.ico", (*staticDir)+"/assets/favicon.ico")
 
 	app.GET("/", ComponentHandler(pages.Home))
 	app.GET("/now", ComponentHandler(pages.Now))
@@ -53,49 +85,14 @@ func main() {
 		appblog.GET(fmt.Sprintf("/%s", post.SafeName), post.Handler())
 	}
 
-	logfile, err := os.OpenFile((*logdir)+"/"+*testtag+".log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
-	if err != nil {
-		app.Logger.Fatal(err)
-	}
-	zerolog.TimestampFieldName = "t"
-	zerolog.LevelFieldName = "l"
-	zerolog.MessageFieldName = "m"
-	Logger = zerolog.New(logfile).With().Timestamp().Logger()
-	//app.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-	//	LogURI:       true,
-	//	LogStatus:    true,
-	//	LogRemoteIP:  true,
-	//	LogError:     true,
-	//	LogHeaders:   []string{"Cookie"},
-	//	LogMethod:    true,
-	//	LogUserAgent: true,
-	//	LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-	//		var msg *zerolog.Event
-	//		if v.Error != nil {
-	//			msg = Logger.Error().Err(v.Error)
-	//		} else if v.Status == 429 {
-	//			msg = Logger.Info()
-	//		} else if v.Status >= 300 {
-	//			msg = Logger.Warn()
-
-	//		} else if v.Status >= 200 {
-	//			msg = Logger.Info().
-	//				Dict("Cookies", parseCookies(v.Headers["Cookie"]))
-	//		} else {
-	//			// catch-all
-	//			msg = Logger.Info()
-	//		}
-	//		msg.
-	//			Str("RemoteIP", v.RemoteIP).
-	//			Str("Agent", v.UserAgent).
-	//			Str("Method", v.Method).
-	//			Int("status", v.Status).
-	//			Str("URI", v.URI).
-	//			Msg("request")
-
-	//		return nil
-	//	},
-	//}))
+	//logfile, err := os.OpenFile((*logdir)+"/"+*testtag+".log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	//if err != nil {
+	//	app.Logger.Fatal(err)
+	//}
+	//zerolog.TimestampFieldName = "t"
+	//zerolog.LevelFieldName = "l"
+	//zerolog.MessageFieldName = "m"
+	//Logger = zerolog.New(logfile).With().Timestamp().Logger()
 
 	app.Use(middleware.Gzip())
 	app.Use(middleware.Secure())
@@ -104,21 +101,6 @@ func main() {
 
 	// TODO: CORS, CSRF
 	// site doesn't have interactability yet so these aren't critical
-
-	// TODO: figure out some analytics
-	if (*metricsPort) != "" {
-		app.Use(echoprometheus.NewMiddlewareWithConfig(echoprometheus.MiddlewareConfig{
-			Subsystem:                 "mysite",
-			DoNotUseRequestPathFor404: true,
-		}))
-		go func() {
-			metrics := echo.New()                                // this Echo will run on separate port 8081
-			metrics.GET("/metrics", echoprometheus.NewHandler()) // adds route to serve gathered metrics
-			if err := metrics.Start(fmt.Sprintf(":%s", (*metricsPort))); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				app.Logger.Fatal(err)
-			}
-		}()
-	}
 
 	app.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStoreWithConfig(middleware.RateLimiterMemoryStoreConfig{
 		Rate:      rate.Limit(2),
@@ -133,7 +115,7 @@ func main() {
 		RedirectCode: http.StatusMovedPermanently,
 	}))
 
-	app.Logger.Fatal(app.Start(fmt.Sprintf(":%s", (*port))))
+	app.Logger.Fatal(app.Start(fmt.Sprintf(":%s", (config.Server.Port))))
 }
 
 func parseCookies(headers []string) *zerolog.Event {
