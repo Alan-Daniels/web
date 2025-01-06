@@ -88,11 +88,13 @@ func EnsureBlockRoot(b Block) RootBlock {
 	if b.BlockName == rootName || b.BlockName == "" {
 		return RootBlock{
 			Children: b.Children,
+			Args: rootArgs,
 		}
 	} else {
 		Logger.Warn().Any("block", b).Msg("gotten a non-root block as a root block")
 		return RootBlock{
 			Children: []Block{b},
+			Args: rootArgs,
 		}
 	}
 }

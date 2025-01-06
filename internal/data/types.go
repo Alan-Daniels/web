@@ -35,7 +35,7 @@ type Group struct {
 }
 
 var components map[string]templ.Component
-var rootArgs blocks.RootArgs // TODO: hydrate args from database
+var rootArgs blocks.RootArgs
 
 func Init(e *echo.Group) error {
 	components = make(map[string]templ.Component)
@@ -44,7 +44,42 @@ func Init(e *echo.Group) error {
 
 	(&Group{}).Init(&Group{g: e}, ctx)
 
+	initRoot()
+
 	return ctx.Err()
+}
+
+func initRoot() {
+	var head templ.Component
+	var foot templ.Component
+
+	_head, err := FromID[Template](NewRecordID[Template]("head"))
+	if err != nil {
+		Logger.Error().Err(err).Msg("could not retrieve head, default to empty head")
+		head = empty()
+	} else {
+		head, err = _head.Block.ToComponent(0)
+		if err != nil {
+			Logger.Error().Err(err).Msg("render head err")
+			head = empty()
+		}
+	}
+	_foot, err := FromID[Template](NewRecordID[Template]("foot"))
+	if err != nil {
+		Logger.Error().Err(err).Msg("could not retrieve foot, default to empty foot")
+		foot = empty()
+	} else {
+		foot, err = _foot.Block.ToComponent(0)
+		if err != nil {
+			Logger.Error().Err(err).Msg("render foot err")
+			foot = empty()
+		}
+	}
+
+	rootArgs = blocks.RootArgs{
+		Head: head,
+		Foot: foot,
+	}
 }
 
 // --
@@ -101,11 +136,19 @@ func typeName[T any]() string {
 	return reflect.TypeOf(*(new(T))).Name()
 }
 
+type HasRecordID interface {
+	GetID() *models.RecordID
+}
+
 type RecordID[T any] struct {
 	ID *models.RecordID `json:"id,omitempty"`
 }
 
-func NewRecordID[T any, K RecordID[T]](id string) models.RecordID {
+func (r RecordID[T]) GetID() *models.RecordID {
+	return r.ID
+}
+
+func NewRecordID[T HasRecordID, K RecordID[T]](id string) models.RecordID {
 	return models.NewRecordID(typeName[T](), id)
 }
 
@@ -116,7 +159,7 @@ func (r *RecordID[T]) GetIDString() string {
 	return r.ID.String()
 }
 
-func Insert[T any, K RecordID[T]](t *T) (*T, error) {
+func Insert[T HasRecordID](t *T) (*T, error) {
 	items, err := surrealdb.Insert[T](Database, models.Table(typeName[T]()), t)
 	if err != nil {
 		return nil, err
@@ -128,13 +171,16 @@ func Insert[T any, K RecordID[T]](t *T) (*T, error) {
 	return &item, err
 }
 
-func Update[T any, K RecordID[T]](t *T, id models.RecordID) (*T, error) {
+func Update[T HasRecordID](t *T, id models.RecordID) (*T, error) {
 	item, err := surrealdb.Update[T](Database, id, t)
 	return item, err
 }
 
-func FromID[T any, K RecordID[T]](id models.RecordID) (item *T, err error) {
+func FromID[T HasRecordID](id models.RecordID) (item *T, err error) {
 	item, err = surrealdb.Select[T](Database, id)
+	if (*item).GetID() == nil {
+		return item, fmt.Errorf("no record for id")
+	}
 	return item, err
 }
 

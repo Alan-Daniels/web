@@ -236,7 +236,5 @@ document.addEventListener("DOMContentLoaded", function () {
   pageEvents();
 
   document.getElementById("block-form~1").querySelector("h6").remove();
-  document
-    .getElementById("block-form~form-1")
-    .childNodes.forEach((el) => el.remove());
+  document.getElementById("block-form~form-1").innerHTML = "";
 });

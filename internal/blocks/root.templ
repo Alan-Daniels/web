@@ -1,6 +1,9 @@
 package blocks
 
-type RootArgs struct{}
+type RootArgs struct{
+	Head templ.Component
+	Foot templ.Component
+}
 
 templ root(_ RootArgs, children []*templ.Component) {
 	@Merge(children)
@@ -12,7 +15,7 @@ templ Merge(children []*templ.Component) {
 	}
 }
 
-templ RootPage(_ RootArgs, child templ.Component) {
+templ RootPage(args RootArgs, child templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -22,7 +25,9 @@ templ RootPage(_ RootArgs, child templ.Component) {
 			<link rel="stylesheet" href={ "/assets/styles.css?ver=" + "indev" }/>
 		</head>
 		<body>
+			@args.Head
 			@child
+			@args.Foot
 		</body>
 	</html>
 }

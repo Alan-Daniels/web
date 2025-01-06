@@ -265,6 +265,7 @@ templ EditBlock(b data.Block, bId *BlockCounter) {
 
 templ PageRoutes(rt *RouteTree) {
 	@Page([]templ.Component{}) {
+		<h1>Welcome <span class="text-rose-400">{ "@" }admin</span>!</h1>
 		@ShowRoutes(rt)
 	}
 }
