@@ -48,9 +48,11 @@ func NewConfig(file string) (*Config, error) {
 
 func main() {
 	staticDir := flag.String("static", ".", "where static files & default files are")
-	//stateDir := flag.String("state", "./tmp", "where generated files & content files are")
+	stateDir := flag.String("state", "./tmp", "where generated files & content files are")
 	configFile := flag.String("config", "./default.yml", "see config.Init()")
 	flag.Parse()
+
+	_ = stateDir
 
 	config, err := NewConfig(*configFile)
 	if err != nil {
